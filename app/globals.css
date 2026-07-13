@@ -603,12 +603,17 @@ input, textarea, select {
   }
 
   .lists-actions-mobile-footer {
-    display: none;
+    display: none !important;
   }
 
   .lists-main-container {
     padding-bottom: 0px;
   }
+}
+
+/* Base style: hide mobile footer on desktop */
+.lists-actions-mobile-footer {
+  display: none;
 }
 
 @media (max-width: 768px) {
@@ -675,7 +680,7 @@ input, textarea, select {
 }
 
 .gifts-grid-container.view-mode-grid {
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 }
 
 .gifts-grid-container.view-mode-large {

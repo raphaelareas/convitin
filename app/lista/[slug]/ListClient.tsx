@@ -323,25 +323,25 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
       </div>
 
       {/* Grid de Presentes */}
-      {/* Grid de Presentes */}
       <div className="container" style={styles.container}>
-        <div style={{ textAlign: 'center', marginBottom: 0 }}>
-          <h2 style={{ fontSize: '1.375rem', fontWeight: '800', marginBottom: '0.25rem', letterSpacing: '-0.02em', fontFamily: "'Inter', sans-serif" }}>Escolha um Presente</h2>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.875rem', fontFamily: "'Open Sans', sans-serif" }}>Navegue pela lista, compre nas lojas parceiras e marque aqui para reservar.</p>
-          
-          {/* Controles de Visualização e Filtro (Linha única) */}
-          {gifts.length > 0 && (
-            <div style={{
-              display: 'flex',
-              justifyContent: 'stretch',
-              alignItems: 'center',
-              width: '100%',
-              margin: '0 auto 8px',
-              gap: '8px',
-              position: 'relative',
-              padding: '0',
-              boxSizing: 'border-box'
-            }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
+          <div style={{ textAlign: 'center', marginBottom: 0 }}>
+            <h2 style={{ fontSize: '1.375rem', fontWeight: '800', marginBottom: '0.25rem', letterSpacing: '-0.02em', fontFamily: "'Inter', sans-serif" }}>Escolha um Presente</h2>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.875rem', fontFamily: "'Open Sans', sans-serif" }}>Navegue pela lista, compre nas lojas parceiras e marque aqui para reservar.</p>
+            
+            {/* Controles de Visualização e Filtro (Linha única) */}
+            {gifts.length > 0 && (
+              <div style={{
+                display: 'flex',
+                justifyContent: 'stretch',
+                alignItems: 'center',
+                width: '100%',
+                margin: '0 auto 8px',
+                gap: '8px',
+                position: 'relative',
+                padding: '0',
+                boxSizing: 'border-box'
+              }}>
               
               {/* 1. Filtros de Status (Card Único - flex: 1) */}
               <div style={{
@@ -542,6 +542,7 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
 
             </div>
           )}
+          </div>
         </div>
 
         {gifts.length === 0 ? (
@@ -565,8 +566,8 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                     className="glass-card" 
                     style={{
                       ...styles.giftCard,
-                      opacity: isReserved ? 0.75 : 1,
-                      border: isReserved ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid var(--card-border)',
+                      background: isReserved ? '#fafafa' : 'var(--card-bg)',
+                      border: isReserved ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid var(--card-border)',
                       position: 'relative',
                       overflow: 'hidden',
                     }}
@@ -595,9 +596,19 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                     )}
 
                     {/* Foto */}
-                    <div className="gift-img" style={styles.imageContainer}>
+                    <div className="gift-img" style={{
+                      ...styles.imageContainer,
+                      opacity: isReserved ? 0.6 : 1,
+                    }}>
                       {gift.image_url ? (
-                        <img src={gift.image_url} alt={gift.name} style={styles.image} />
+                        <img 
+                          src={gift.image_url} 
+                          alt={gift.name} 
+                          style={{
+                            ...styles.image,
+                            filter: isReserved ? 'blur(3px)' : 'none',
+                          }} 
+                        />
                       ) : (
                         <div style={styles.placeholder}>
                           {gift.is_search_link ? (
@@ -653,9 +664,15 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                         )}
                       </div>
 
-                      <h3 style={styles.giftTitle}>{gift.name}</h3>
+                      <h3 style={{
+                        ...styles.giftTitle,
+                        opacity: isReserved ? 0.6 : 1,
+                      }}>{gift.name}</h3>
                       {gift.price ? (
-                        <p style={styles.giftPrice}>
+                        <p style={{
+                          ...styles.giftPrice,
+                          opacity: isReserved ? 0.6 : 1,
+                        }}>
                           {gift.is_search_link ? 'A partir de ' : ''}R$ {gift.price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                       ) : null}
@@ -1096,6 +1113,9 @@ const styles: Record<string, React.CSSProperties> = {
     flex: 1,
     boxSizing: 'border-box',
     padding: '1rem',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    width: '100%',
   },
   emptyState: {
     display: 'flex',

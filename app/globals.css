@@ -855,3 +855,25 @@ input, textarea, select {
   z-index: 40 !important;
 }
 
+/* Banner aspect ratio 1200x400 (3:1) on Desktop */
+.public-list-banner-el {
+  width: 100% !important;
+  max-width: 1200px !important;
+  height: 400px !important;
+  margin: 1.5rem auto 0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05) !important;
+}
+
+@media (max-width: 768px) {
+  .public-list-banner-el {
+    height: 160px !important;
+    border-radius: 0px !important;
+    box-shadow: none !important;
+  }
+
+  .public-list-info-container {
+    margin-top: -28px !important;
+  }
+}
+

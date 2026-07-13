@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
-import { Gift, ExternalLink, Heart, CheckCircle2, User, Loader2, Sparkles, Copy, Check, LayoutGrid, Square, List, ArrowRight } from 'lucide-react';
+import { Gift, ExternalLink, Heart, CheckCircle2, User, Loader2, Sparkles, Copy, Check, LayoutGrid, Square, List, ArrowRight, LogOut } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 // Logos de marketplace — limpos, sem fundo retangular, 36x36
@@ -72,6 +72,18 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'large' | 'horizontal'>('grid');
   const [filterMode, setFilterMode] = useState<'all' | 'available'>('all');
   const [showGridDropdown, setShowGridDropdown] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  // Check current session to display either 'Crie sua lista' or 'Logout / Dashboard'
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setUser(session.user);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session ? session.user : null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Escutar atualizações do banco em tempo real via Supabase Realtime
   useEffect(() => {
@@ -218,35 +230,73 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
       <header style={styles.navbar}>
         <div style={styles.navInner}>
           {/* Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Link 
+            href={user ? '/dashboard' : '/'} 
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', cursor: 'pointer' }}
+          >
             <div style={styles.navLogoIcon}>
               <Gift size={18} color="#ffffff" />
             </div>
             <span style={styles.navLogoName}>Convitin</span>
-          </div>
-          {/* CTA */}
-          <Link
-            href="/login"
-            className="btn btn-primary"
-            style={{ padding: '0.45rem 1rem', fontSize: '0.8rem', fontWeight: '700', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}
-          >
-            Crie sua lista grátis
-            <ArrowRight size={14} />
           </Link>
+          {/* CTA */}
+          {user ? (
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+                window.location.reload();
+              }}
+              className="btn btn-secondary"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontSize: '0.85rem',
+                fontWeight: '600',
+                padding: '0.5rem 0.85rem',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                border: '1px solid rgba(0,0,0,0.06)',
+                background: '#ffffff',
+                color: 'var(--text-main)',
+                transition: 'var(--transition-smooth)',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                outline: 'none',
+              }}
+            >
+              <LogOut size={15} />
+              Logout
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="btn btn-primary"
+              style={{ padding: '0.45rem 1rem', fontSize: '0.8rem', fontWeight: '700', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}
+            >
+              Crie sua lista grátis
+              <ArrowRight size={14} />
+            </Link>
+          )}
         </div>
       </header>
 
       {/* Banner de Capa Estilo Facebook (Plano de ponta a ponta) */}
-      <div 
-        style={{ 
-          ...styles.banner, 
-          backgroundImage: list.banner_url ? `url(${list.banner_url})` : 'none',
-          position: 'relative'
-        }}
-      />
+      <div className="public-list-banner-wrapper" style={{
+        width: '100%',
+        background: 'transparent',
+      }}>
+        <div 
+          className="public-list-banner-el"
+          style={{ 
+            ...styles.banner, 
+            backgroundImage: list.banner_url ? `url(${list.banner_url})` : 'none',
+            position: 'relative'
+          }}
+        />
+      </div>
 
       {/* Caixa de Informações do Evento (Posicionada logo abaixo da Capa) */}
-      <div className="container" style={{ maxWidth: '800px', margin: '0 auto', padding: '0 1.5rem', marginTop: '-28px', position: 'relative', zIndex: 10 }}>
+      <div className="container public-list-info-container" style={{ maxWidth: '800px', margin: '0 auto', padding: '0 1.5rem', marginTop: '-120px', position: 'relative', zIndex: 10 }}>
         <div className="glass-card animate-fade-in" style={{
           background: 'var(--card-bg)',
           backdropFilter: 'blur(10px)',

@@ -658,7 +658,7 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                         marginBottom: '0.15rem',
                       }}>
                         {gift.is_search_link ? (
-                          <><span>Busca Geral</span><span>🔍</span></>
+                          <><span>Busca facilitada</span><span>🔍</span></>
                         ) : (
                           <><span>Modelo Exato</span><span>✅</span></>
                         )}
@@ -788,6 +788,11 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                 <label style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-muted)', display: 'block', marginBottom: '0.6rem' }}>
                   Onde deseja comprar?
                 </label>
+                {selectedGift?.is_search_link && (
+                  <p style={{ fontSize: '0.75rem', color: '#b45309', background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.2)', padding: '8px 12px', borderRadius: '8px', margin: '0 0 10px 0', lineHeight: 1.4 }}>
+                    <strong>Busca facilitada:</strong> Os botões abaixo te levam para uma página com diversas opções onde você pode escolher o presente ideal.
+                  </p>
+                )}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {selectedGift?.link_ml && (
                     <button

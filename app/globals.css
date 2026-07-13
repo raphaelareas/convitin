@@ -1,0 +1,852 @@
+/* =========================================================================
+   CONVITIN - CORE DESIGN SYSTEM & THEMES (VANILLA CSS)
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Open+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
+:root {
+  /* Default Theme Colors: Classic / Modern Blue */
+  --font-primary: 'Open Sans', sans-serif;
+  --font-heading: 'Inter', sans-serif;
+  --font-serif: 'Playfair Display', serif;
+  
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-rgb: 79, 70, 229;
+
+  /* Button colors — can differ from --primary for accessibility on pastel themes */
+  --button-bg: #4f46e5;
+  --button-hover-bg: #4338ca;
+  --button-text: #ffffff;
+  
+  --background-start: #f8fafc;
+  --background-end: #e2e8f0;
+  
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-light: #ffffff;
+  
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --card-border: rgba(255, 255, 255, 0.6);
+  --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+  
+  --glass-bg: rgba(255, 255, 255, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  
+  --accent: #f43f5e; /* Rose */
+  --accent-rgb: 244, 63, 94;
+  
+  --success: #10b981;
+  --warning: #f59e0b;
+  
+  --border-radius-sm: 8px;
+  --border-radius-md: 16px;
+  --border-radius-lg: 24px;
+  
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =========================================================================
+   THEME PRESETS (CSS Variables mapping)
+   ========================================================================= */
+
+/* 1. Casamento (Wedding) - Gold, Off-white, Luxury */
+.theme-wedding {
+  --primary: #c5a880;
+  --primary-hover: #b09168;
+  --primary-rgb: 197, 168, 128;
+  /* Button: deep warm brown — contrast 7.3:1 with white */
+  --button-bg: #7c5c2e;
+  --button-hover-bg: #6b4e26;
+  --button-text: #ffffff;
+  --background-start: #faf9f6;
+  --background-end: #f0ede5;
+  --text-main: #2b261f;
+  --text-muted: #7c7267;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-border: rgba(230, 224, 213, 0.8);
+  --accent: #d97706;
+}
+
+/* 2. Chá de Bebê Menino (Baby Boy) - Pastel Blue, Soft Gray */
+.theme-baby_boy {
+  --primary: #93c5fd;
+  --primary-hover: #60a5fa;
+  --primary-rgb: 147, 197, 253;
+  /* Button: deep blue — contrast 8.6:1 with white */
+  --button-bg: #1d4ed8;
+  --button-hover-bg: #1e40af;
+  --button-text: #ffffff;
+  --background-start: #f0f7ff;
+  --background-end: #e0f2fe;
+  --text-main: #1e3a8a;
+  --text-muted: #64748b;
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --card-border: rgba(219, 234, 254, 0.7);
+  --accent: #f43f5e;
+}
+
+/* 3. Chá de Bebê Menina (Baby Girl) - Pastel Pink, Lilac */
+.theme-baby_girl {
+  --primary: #fbcfe8;
+  --primary-hover: #f9a8d4;
+  --primary-rgb: 251, 207, 232;
+  /* Button: deep rose — contrast 6.2:1 with white */
+  --button-bg: #be185d;
+  --button-hover-bg: #9d174d;
+  --button-text: #ffffff;
+  --background-start: #fff1f2;
+  --background-end: #ffe4e6;
+  --text-main: #881337;
+  --text-muted: #9f1239;
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --card-border: rgba(253, 224, 224, 0.7);
+  --accent: #3b82f6;
+}
+
+/* 4. Chá de Bebê Neutro (Baby Neutral) - Mint Green, Peach, Cream */
+.theme-baby_neutral {
+  --primary: #a7f3d0;
+  --primary-hover: #6ee7b7;
+  --primary-rgb: 167, 243, 208;
+  /* Button: deep emerald — contrast 8.1:1 with white */
+  --button-bg: #065f46;
+  --button-hover-bg: #064e3b;
+  --button-text: #ffffff;
+  --background-start: #f0fdf4;
+  --background-end: #ecfdf5;
+  --text-main: #064e3b;
+  --text-muted: #047857;
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --card-border: rgba(209, 250, 229, 0.7);
+  --accent: #f59e0b;
+}
+
+/* 5. Aniversário Infantil (Birthday) - Vibrant Orange, Yellow, Royal Blue */
+.theme-birthday {
+  --primary: #f97316;
+  --primary-hover: #ea580c;
+  --primary-rgb: 249, 115, 22;
+  /* Button: dark burnt orange — contrast 4.6:1 with white */
+  --button-bg: #c2410c;
+  --button-hover-bg: #9a3412;
+  --button-text: #ffffff;
+  --background-start: #fffbeb;
+  --background-end: #fef3c7;
+  --text-main: #7c2d12;
+  --text-muted: #b45309;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-border: rgba(253, 230, 138, 0.8);
+  --accent: #0284c7;
+}
+
+/* 6. Chá de Panela / Lingerie (Bridal Shower) - Rose Gold, Wine */
+.theme-bridal_shower {
+  --primary: #fda4af;
+  --primary-hover: #f43f5e;
+  --primary-rgb: 253, 164, 175;
+  /* Button: deep crimson — contrast 7.8:1 with white */
+  --button-bg: #9f1239;
+  --button-hover-bg: #881337;
+  --button-text: #ffffff;
+  --background-start: #fff1f2;
+  --background-end: #fce7f3;
+  --text-main: #4c0519;
+  --text-muted: #9f1239;
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --card-border: rgba(251, 207, 232, 0.7);
+  --accent: #fb7185;
+}
+
+/* =========================================================================
+   GLOBAL RESET & BASE STYLES
+   ========================================================================= */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  font-family: var(--font-primary);
+  color: var(--text-main);
+  background: linear-gradient(135deg, var(--background-start) 0%, var(--background-end) 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.serif-font {
+  font-family: var(--font-serif);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: var(--transition-smooth);
+}
+
+button, label, .form-label {
+  font-family: var(--font-heading);
+  font-size: inherit;
+}
+
+input, textarea, select {
+  font-family: var(--font-primary);
+  font-size: inherit;
+}
+
+/* =========================================================================
+   COMMON UTILITIES & INTERFACES (Glassmorphism, Buttons, Forms)
+   ========================================================================= */
+
+/* Glass Container Card */
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  border-radius: var(--border-radius-md);
+  padding: 1.75rem;
+  transition: var(--transition-smooth);
+}
+
+.glass-card:hover {
+  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.08);
+}
+
+/* Input Styles */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+
+
+
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.input-field {
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--text-main);
+  outline: none;
+  transition: var(--transition-smooth);
+}
+
+.input-field:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
+}
+
+.input-field::placeholder {
+  color: #a1a1aa;
+}
+
+/* Button Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius-sm);
+  border: none;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.btn-primary {
+  background: var(--button-bg, var(--primary));
+  color: var(--button-text, var(--text-light));
+}
+
+.btn-primary:hover {
+  background: var(--button-hover-bg, var(--primary-hover));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.25);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled,
+.btn-primary[disabled] {
+  background: #c8cdd6 !important;
+  color: #6b7280 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+.btn-secondary {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-main);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.btn-secondary:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.btn-danger {
+  background: var(--accent);
+  color: var(--text-light);
+}
+
+.btn-danger:hover {
+  background: #e11d48;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.2);
+}
+
+.btn-disabled {
+  background: #cbd5e1 !important;
+  color: #94a3b8 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Responsive Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  width: 100%;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Responsive adjustments for Dashboard Header & View Header */
+.dashboard-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard-user-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.dashboard-user-name {
+  font-size: 0.875rem;
+}
+
+.dashboard-user-name-mobile {
+  display: none;
+}
+
+.dashboard-logout-mobile {
+  display: none;
+}
+
+.dashboard-view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 1rem;
+}
+
+.dashboard-nova-lista-btn {
+  width: auto;
+}
+
+@media (max-width: 768px) {
+  .dashboard-header-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .dashboard-header-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .dashboard-user-bar {
+    display: none !important;
+  }
+
+  .dashboard-user-name-mobile {
+    display: block !important;
+    font-size: 0.825rem;
+    color: var(--text-muted);
+    margin-top: -0.15rem;
+    padding-left: 2px;
+  }
+
+  .dashboard-logout-mobile {
+    display: inline-flex !important;
+  }
+
+  .dashboard-view-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .dashboard-nova-lista-btn {
+    width: 100% !important;
+  }
+}
+
+/* Form Columns layout: 24px gap on desktop, 0px gap on mobile (margin-bottom handles stacked spacing) */
+.dashboard-form-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .dashboard-form-columns {
+    gap: 0px !important;
+  }
+}
+
+/* Form Actions alignment: right aligned on desktop, 40/60 split on mobile */
+.dashboard-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0px;
+  width: 100%;
+}
+
+
+.dashboard-form-actions button {
+  width: auto;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .dashboard-form-actions {
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .dashboard-form-actions-cancel {
+    flex: 4 !important;
+    width: 40% !important;
+    padding: 0.75rem 0.4rem !important;
+    white-space: nowrap !important;
+  }
+
+  .dashboard-form-actions-save {
+    flex: 6 !important;
+    width: 60% !important;
+    padding: 0.75rem 0.4rem !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* Universal Modal centering and sizing fixes */
+.dashboard-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(15, 23, 42, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 99999 !important;
+  padding: 1rem !important;
+  box-sizing: border-box !important;
+}
+
+.dashboard-modal-card {
+  width: 100% !important;
+  max-width: 520px !important;
+  background: #ffffff !important;
+  box-sizing: border-box !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  margin: auto !important;
+}
+
+@media (max-width: 768px) {
+  .dashboard-modal-card {
+    padding: 1.5rem !important;
+  }
+}
+
+/* Gifts View Desktop header actions and Mobile floating footer actions */
+.gifts-actions-desktop-header {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.gifts-actions-mobile-footer {
+  display: none;
+}
+
+.gifts-share-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.gifts-share-input-wrapper {
+  flex: 1;
+}
+
+.gifts-share-btn {
+  width: auto;
+}
+
+@media (max-width: 768px) {
+  .gifts-actions-desktop-header {
+    display: none;
+  }
+
+  .gifts-actions-mobile-footer {
+    display: flex;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: #ffffff !important;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.08) !important;
+    border-top: 1px solid #e2e8f0 !important;
+    padding: 16px 24px !important;
+    gap: 16px !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    z-index: 9999 !important;
+  }
+
+  .gifts-actions-mobile-footer button,
+  .gifts-actions-mobile-footer a {
+    flex: 1 !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    font-size: 14px !important;
+    padding: 0.75rem 0.5rem !important;
+    height: 44px;
+    border-radius: 8px;
+    text-decoration: none;
+  }
+
+  .gifts-share-row {
+    flex-wrap: nowrap !important;
+  }
+
+  .gifts-share-input-wrapper {
+    flex: 1 !important;
+    width: 50% !important;
+    min-width: 0 !important;
+  }
+
+  .gifts-share-btn {
+    flex: 1 !important;
+    width: 50% !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  .gifts-list-container {
+    padding-bottom: 100px !important;
+  }
+
+  /* List Actions (Nova Lista button layout) */
+  .lists-actions-desktop-header {
+    display: block;
+  }
+
+  .lists-actions-mobile-footer {
+    display: none;
+  }
+
+  .lists-main-container {
+    padding-bottom: 0px;
+  }
+}
+
+@media (max-width: 768px) {
+  .lists-actions-desktop-header {
+    display: none !important;
+  }
+
+  .lists-actions-mobile-footer {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: #ffffff !important;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.08) !important;
+    border-top: 1px solid #e2e8f0 !important;
+    padding: 16px 24px !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    z-index: 9999 !important;
+  }
+
+  .lists-actions-mobile-footer button {
+    flex: 1 !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    font-size: 14px !important;
+    padding: 0.75rem 0.5rem !important;
+    height: 44px;
+    border-radius: 8px;
+  }
+
+  .lists-main-container {
+    padding-bottom: 100px !important;
+  }
+
+  /* Force view header titles (H2) to be bold 22px on mobile */
+  .dashboard-view-header h2,
+  .gifts-header-container h2 {
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  /* Force card titles (H3) to be semibold 18px on mobile */
+  .list-card-title-heading,
+  [class*="listCardTitle"] {
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+  }
+}
+
+/* Public List Grid Layouts based on viewMode */
+.gifts-grid-container {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+  width: 100%;
+}
+
+.gifts-grid-container.view-mode-grid {
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+}
+
+.gifts-grid-container.view-mode-large {
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+}
+
+.gifts-grid-container.view-mode-horizontal {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+@media (max-width: 768px) {
+  /* Mode 1: Grid 2x2 (2 items per line on mobile by default) */
+  .gifts-grid-container.view-mode-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+
+  .gifts-grid-container.view-mode-grid .glass-card {
+    padding: 0px !important;
+  }
+  
+  .gifts-grid-container.view-mode-grid .glass-card h3 {
+    font-size: 0.8rem !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+  }
+
+  .gifts-grid-container.view-mode-grid .glass-card button {
+    padding: 0.45rem 0.5rem !important;
+    font-size: 0.72rem !important;
+    height: 34px !important;
+  }
+
+  /* Mode 2: Large (1 item per line on mobile) */
+  .gifts-grid-container.view-mode-large {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+
+  /* Mode 3: Horizontal list on mobile */
+  .gifts-grid-container.view-mode-horizontal {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  .gifts-grid-container.view-mode-horizontal .glass-card {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    height: 128px !important;
+    padding: 0.5rem !important;
+    gap: 0.75rem !important;
+    overflow: hidden !important;
+  }
+
+  /* Image container in horizontal mode — using class for reliable targeting */
+  .gifts-grid-container.view-mode-horizontal .glass-card .gift-img {
+    width: 108px !important;
+    height: 108px !important;
+    min-width: 108px !important;
+    aspect-ratio: 1 / 1 !important;
+    flex-shrink: 0 !important;
+    border-bottom: none !important;
+    border-radius: 8px !important;
+    padding: 2px !important;
+  }
+
+  /* Card body in horizontal mode */
+  .gifts-grid-container.view-mode-horizontal .glass-card .gift-body {
+    padding: 0.25rem 0.25rem 0.25rem 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    flex: 1 !important;
+    gap: 0.2rem !important;
+    height: 108px !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Ribbon smaller in horizontal mode */
+  .gifts-grid-container.view-mode-horizontal .glass-card .gift-ribbon {
+    width: 20px !important;
+    height: 26px !important;
+    right: 8px !important;
+  }
+
+  .gifts-grid-container.view-mode-horizontal .glass-card .gift-ribbon svg {
+    width: 10px !important;
+    height: 10px !important;
+  }
+
+  .gifts-grid-container.view-mode-horizontal .glass-card h3 {
+    font-size: 0.825rem !important;
+    margin: 0 !important;
+    white-space: normal !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+  }
+
+  .gifts-grid-container.view-mode-horizontal .glass-card p {
+    font-size: 0.85rem !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+  }
+
+  .gifts-grid-container.view-mode-horizontal .glass-card button {
+    width: 100% !important;
+    padding: 0.4rem 0.6rem !important;
+    font-size: 0.75rem !important;
+    height: 32px !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center;
+    gap: 0.35rem !important;
+  }
+
+  .gifts-grid-container.view-mode-horizontal .glass-card [class*="reservedInfo"] {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0.4rem 0.6rem !important;
+    font-size: 0.75rem !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center;
+    background: #f1f5f9 !important;
+    border-radius: 6px !important;
+  }
+
+  /* Public list: título principal no mobile */
+  .public-list-title {
+    font-size: 28px !important;
+    line-height: 1.1 !important;
+  }
+}
+
+/* Force reserved overlay and badge layout */
+.reserved-overlay-div {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-color: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 30 !important;
+}
+
+.reserved-badge-div {
+  background: var(--success) !important;
+  color: #ffffff !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 30px !important;
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+  z-index: 40 !important;
+}
+

@@ -496,13 +496,20 @@ export default function Dashboard() {
 
         if (firstLink && /^https?:\/\//i.test(firstLink)) {
           try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 4000);
-
-            const res = await fetch(`/api/scrape?url=${encodeURIComponent(firstLink)}`, {
-              signal: controller.signal
-            });
-            clearTimeout(timeoutId);
+            const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            const timeoutId = controller ? setTimeout(() => {
+              try {
+                controller.abort();
+              } catch(e) {}
+            }, 8000) : null;
+ 
+            const fetchOptions: RequestInit = {};
+            if (controller) {
+              fetchOptions.signal = controller.signal;
+            }
+ 
+            const res = await fetch(`/api/scrape?url=${encodeURIComponent(firstLink)}`, fetchOptions);
+            if (timeoutId) clearTimeout(timeoutId);
 
             if (res.ok) {
               const data = await res.json();

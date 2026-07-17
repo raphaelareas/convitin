@@ -48,14 +48,27 @@ export async function GET(request: Request) {
     if (platform === 'shopee' && !isSearchLink) {
       // Extrair título do produto diretamente da URL da Shopee (que é muito descritiva e limpa)
       const pathPart = cleanedUrl.split('/').pop() || '';
-      const titlePart = pathPart.split('-i.')[0] || '';
-      let extractedTitle = decodeURIComponent(titlePart).replace(/-/g, ' ').trim();
-
-      // Sanitizar título se veio apenas IDs numéricos
-      if (!extractedTitle || /^\d+$/.test(extractedTitle)) {
-        extractedTitle = 'Produto da Shopee';
+      // A URL da Shopee pode ser: /nome-do-produto-i.123.456 ou /product/123/456 ou /nome-do-produto (sem query/id)
+      let titlePart = pathPart;
+      if (pathPart.includes('-i.')) {
+        titlePart = pathPart.split('-i.')[0];
+      } else if (pathPart.includes('.')) {
+        titlePart = pathPart.split('.')[0];
       }
-
+      let extractedTitle = decodeURIComponent(titlePart).replace(/-/g, ' ').replace(/_/g, ' ').trim();
+ 
+      // Sanitizar título se veio apenas IDs numéricos ou lixo
+      if (!extractedTitle || /^\d+$/.test(extractedTitle) || extractedTitle.length < 3) {
+        // Tenta pegar a penúltima parte da URL
+        const parts = cleanedUrl.split('/');
+        const penUlt = parts[parts.length - 2] || '';
+        if (penUlt && !/^(product|item|shop|category|s|i|c)$/i.test(penUlt)) {
+          extractedTitle = decodeURIComponent(penUlt).replace(/-/g, ' ').replace(/_/g, ' ').trim();
+        } else {
+          extractedTitle = 'Produto da Shopee';
+        }
+      }
+ 
       let imageUrl: string | null = null;
 
       if (extractedTitle !== 'Produto da Shopee') {

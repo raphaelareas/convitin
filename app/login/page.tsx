@@ -34,18 +34,24 @@ export default function LoginPage() {
   const [resetCode, setResetCode] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // Redireciona se o usuário já estiver logado
+  // Escuta alteração de estado de autenticação para detectar link de recuperação clicado
   useEffect(() => {
-    // Se o hash contém informações de recuperação (quando clica no link do email do Supabase)
-    // O Supabase pode lidar com isso. Mas para o fluxo de código OTP inserido direto na tela de recuperação,
-    // nós cuidamos disso manualmente no formulário.
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session && activeView !== 'reset') {
+    // Quando o usuário clica no link do e-mail de recuperação do Supabase,
+    // ele é redirecionado de volta com um hash (#access_token=...)
+    // O Supabase intercepta isso e dispara o evento 'PASSWORD_RECOVERY'
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setActiveView('reset');
+        setErrorMsg('');
+        setSuccessMsg('');
+      } else if (session && activeView !== 'reset') {
         router.push('/dashboard');
       }
+    });
+
+    return () => {
+      subscription.unsubscribe();
     };
-    checkUser();
   }, [router, activeView]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,16 +90,15 @@ export default function LoginPage() {
         if (error) throw error;
         router.push('/dashboard');
       } else if (activeView === 'recover') {
-        // Envia código de recuperação de senha por email
+        // Fluxo de link: envia o link tradicional de recuperação
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: window.location.origin + '/login', // Fallback, mas usaremos fluxo de Código OTP na tela
+          redirectTo: window.location.origin + '/login', // Redireciona de volta para esta mesma página
         });
         if (error) throw error;
 
-        setSuccessMsg('Código de recuperação enviado para o seu e-mail! Verifique sua caixa de entrada.');
-        setActiveView('reset'); // Vai para a tela de digitar o código e nova senha
+        setSuccessMsg('Link de recuperação enviado com sucesso! Verifique sua caixa de entrada e clique no link para redefinir sua senha.');
       } else if (activeView === 'reset') {
-        // Fluxo de verificação de código OTP e redefinição de senha
+        // Fluxo de redefinição de senha após clicar no link do e-mail
         if (password !== confirmPassword) {
           throw new Error('As senhas não coincidem.');
         }
@@ -101,15 +106,7 @@ export default function LoginPage() {
           throw new Error('A senha deve conter no mínimo 6 caracteres.');
         }
 
-        // 1. Verificar OTP de recuperação de senha
-        const { error: verifyError } = await supabase.auth.verifyOtp({
-          email,
-          token: resetCode,
-          type: 'recovery',
-        });
-        if (verifyError) throw verifyError;
-
-        // 2. Atualizar a senha
+        // O usuário já está logado na sessão temporária de recuperação, então apenas atualizamos a senha
         const { error: updateError } = await supabase.auth.updateUser({
           password: password,
         });
@@ -166,14 +163,14 @@ export default function LoginPage() {
         {activeView === 'recover' && (
           <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem' }}>Recuperar Senha</h3>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Insira seu e-mail para receber o código de verificação.</p>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Insira seu e-mail para receber um link de redefinição de senha.</p>
           </div>
         )}
 
         {activeView === 'reset' && (
           <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem' }}>Definir Nova Senha</h3>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Preencha o código enviado ao seu e-mail e sua nova senha.</p>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Digite sua nova senha de acesso abaixo para atualizar sua conta.</p>
           </div>
         )}
 
@@ -228,24 +225,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          {activeView === 'reset' && (
-            <div className="form-group">
-              <label htmlFor="resetCode">Código de Verificação</label>
-              <div style={styles.inputWrapper}>
-                <Lock size={18} style={styles.inputIcon} />
-                <input
-                  id="resetCode"
-                  type="text"
-                  placeholder="Código de 6 dígitos"
-                  className="input-field"
-                  style={styles.inputWithIcon}
-                  value={resetCode}
-                  onChange={(e) => setResetCode(e.target.value)}
-                  required={activeView === 'reset'}
-                />
-              </div>
-            </div>
-          )}
+
 
           {activeView !== 'recover' && (
             <div className="form-group" style={{ marginBottom: activeView === 'login' ? '0.5rem' : '1.5rem' }}>
@@ -317,7 +297,7 @@ export default function LoginPage() {
               <>
                 {activeView === 'login' && 'Entrar no Painel'}
                 {activeView === 'signUp' && 'Cadastrar e Começar'}
-                {activeView === 'recover' && 'Enviar Código'}
+                {activeView === 'recover' && 'Enviar Link de Recuperação'}
                 {activeView === 'reset' && 'Alterar Senha'}
                 <ArrowRight size={18} />
               </>

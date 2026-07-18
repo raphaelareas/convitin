@@ -19,11 +19,29 @@ export async function GET(request: Request) {
 
     let cleanedUrl = targetUrl.trim();
 
+    // Identificar links encurtados da Shopee (shp.ee ou br.shp.ee)
+    if (/shp\.ee/i.test(cleanedUrl)) {
+      try {
+        const redirectRes = await fetch(cleanedUrl, {
+          method: 'GET',
+          redirect: 'follow',
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          }
+        });
+        if (redirectRes.url) {
+          cleanedUrl = redirectRes.url;
+        }
+      } catch (err) {
+        console.warn('Erro ao resolver redirecionamento de link encurtado Shopee:', err);
+      }
+    }
+
     // Identificar a plataforma
     let platform: 'mercadolivre' | 'shopee' | 'amazon' | 'other' = 'other';
     if (/mercadolivre\.com/i.test(cleanedUrl) || /mercadolibre/i.test(cleanedUrl)) {
       platform = 'mercadolivre';
-    } else if (/shopee\.com/i.test(cleanedUrl)) {
+    } else if (/shopee\.com/i.test(cleanedUrl) || /shp\.ee/i.test(cleanedUrl)) {
       platform = 'shopee';
     } else if (/amazon\.com/i.test(cleanedUrl)) {
       platform = 'amazon';

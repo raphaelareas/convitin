@@ -234,6 +234,7 @@ export default function ManageGiftsPage({ params }: PageProps) {
                 {gifts.map((gift) => (
                   <div key={gift.id} className="glass-card" style={{
                     ...styles.giftCard,
+                    padding: '0px',
                     opacity: gift.status === 'reservado' ? 0.85 : 1,
                     border: gift.status === 'reservado' ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid var(--card-border)'
                   }}>
@@ -436,7 +437,7 @@ const styles: Record<string, React.CSSProperties> = {
   giftsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-    gap: '1.25rem',
+    gap: '1rem',
     marginTop: '1.5rem',
   },
   giftCard: {
@@ -475,7 +476,7 @@ const styles: Record<string, React.CSSProperties> = {
     height: '100%',
   },
   giftCardBody: {
-    padding: '1.25rem',
+    padding: '1rem',
     display: 'flex',
     flexDirection: 'column',
     gap: '0.5rem',

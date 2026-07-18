@@ -27,6 +27,7 @@ export default function LoginPage() {
     if (m.includes('invalid signup')) return 'Os dados de cadastro fornecidos são inválidos.';
     if (m.includes('token has expired') || m.includes('otp expired')) return 'O código informado expirou. Solicite um novo.';
     if (m.includes('invalid grant') || m.includes('invalid token')) return 'Código de verificação incorreto ou inválido.';
+    if (m.includes('rate limit')) return 'Muitos e-mails enviados em sequência. Por favor, aguarde 1 minuto e tente novamente.';
     return msg;
   };
 

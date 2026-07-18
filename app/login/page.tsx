@@ -36,15 +36,18 @@ export default function LoginPage() {
 
   // Escuta alteração de estado de autenticação para detectar link de recuperação clicado
   useEffect(() => {
-    // Quando o usuário clica no link do e-mail de recuperação do Supabase,
-    // ele é redirecionado de volta com um hash (#access_token=...)
-    // O Supabase intercepta isso e dispara o evento 'PASSWORD_RECOVERY'
+    // Evita o redirecionamento automático caso a URL atual contenha tokens de recuperação
+    const isRecoveryUrl = typeof window !== 'undefined' && 
+      (window.location.hash.includes('type=recovery') || 
+       window.location.href.includes('type=recovery') ||
+       window.location.hash.includes('access_token='));
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
         setActiveView('reset');
         setErrorMsg('');
         setSuccessMsg('');
-      } else if (session && activeView !== 'reset') {
+      } else if (session && activeView !== 'reset' && !isRecoveryUrl) {
         router.push('/dashboard');
       }
     });

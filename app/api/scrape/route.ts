@@ -22,18 +22,23 @@ export async function GET(request: Request) {
     // Identificar links encurtados da Shopee (shp.ee ou br.shp.ee)
     if (/shp\.ee/i.test(cleanedUrl)) {
       try {
-        const redirectRes = await fetch(cleanedUrl, {
+        const res = await fetch(cleanedUrl, {
           method: 'GET',
-          redirect: 'follow',
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1',
           }
         });
-        if (redirectRes.url) {
-          cleanedUrl = redirectRes.url;
+        if (res.ok) {
+          const html = await res.text();
+          // Procurar pela variável CONFIG.httpUrl no código script
+          const configMatch = html.match(/httpUrl\s*:\s*["']([^"']+)["']/i);
+          if (configMatch && configMatch[1]) {
+            // Decodificar barras escapadas (\/)
+            cleanedUrl = configMatch[1].replace(/\\/g, '');
+          }
         }
       } catch (err) {
-        console.warn('Erro ao resolver redirecionamento de link encurtado Shopee:', err);
+        console.warn('Erro ao ler link encurtado Shopee via regex:', err);
       }
     }
 

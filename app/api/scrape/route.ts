@@ -298,36 +298,52 @@ export async function GET(request: Request) {
       }
     }
 
-    // Fallback específico da Amazon no HTML
-    const isGenericLogoCheck = 
-      !imageUrl ||
-      /logo|favicon|brand|placeholder/i.test(imageUrl) ||
-      (platform === 'amazon' && /amazon-logo/i.test(imageUrl));
+    // Extração de múltiplas imagens do HTML
+    const imageUrls: string[] = [];
+    if (imageUrl) {
+      imageUrls.push(imageUrl);
+    }
 
-    if (isGenericLogoCheck && platform === 'amazon') {
-      const amzRegex1 = /<img[^>]*id=["']landingImage["'][^>]*src=["']([^"']+)["']/i;
-      const amzRegex2 = /<img[^>]*src=["']([^"']+)["'][^>]*id=["']landingImage["']/i;
-      const amzRegex3 = /<img[^>]*class=["'][^"']*a-dynamic-image[^"']*["'][^>]*src=["']([^"']+)["']/i;
-      const amzRegex4 = /data-a-dynamic-image=["']([^"']+)["']/i;
-
-      const amzMatch = html.match(amzRegex1) || html.match(amzRegex2) || html.match(amzRegex3);
-      if (amzMatch && amzMatch[1]) {
-        imageUrl = amzMatch[1];
-      } else {
-        const match4 = html.match(amzRegex4);
-        if (match4 && match4[1]) {
-          try {
-            const cleanJson = match4[1].replace(/&quot;/g, '"');
-            const urls = Object.keys(JSON.parse(cleanJson));
-            if (urls.length > 0) imageUrl = urls[0];
-          } catch (e) {}
-        }
+    // Buscar imagens adicionais no HTML
+    const imgMatches = html.matchAll(/<img[^>]*src=["'](https:\/\/[^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/gi);
+    for (const match of imgMatches) {
+      if (imageUrls.length >= 3) break;
+      const imgUrl = match[1];
+      // Ignorar logos, favicons, trackers ou imagens muito pequenas ou repetidas
+      if (
+        !/logo|favicon|brand|placeholder|banner|sprite|pixel|analytics|loading|icon/i.test(imgUrl) &&
+        !imageUrls.includes(imgUrl)
+      ) {
+        imageUrls.push(imgUrl);
       }
     }
 
+    // Se ainda tiver menos de 3 e for Amazon, buscar no JSON de imagens dinâmicas
+    if (imageUrls.length < 3 && platform === 'amazon') {
+      const amzRegex4 = /data-a-dynamic-image=["']([^"']+)["']/g;
+      const amzMatches = html.matchAll(amzRegex4);
+      for (const m of amzMatches) {
+        if (imageUrls.length >= 3) break;
+        try {
+          const cleanJson = m[1].replace(/&quot;/g, '"');
+          const urls = Object.keys(JSON.parse(cleanJson));
+          for (const url of urls) {
+            if (imageUrls.length >= 3) break;
+            if (!imageUrls.includes(url)) imageUrls.push(url);
+          }
+        } catch (e) {}
+      }
+    }
+
+    // Converter imagens Mercado Livre para alta resolução
+    const finalImages = imageUrls.map(url => 
+      platform === 'mercadolivre' ? url.replace(/-(?:I|E)\.(jpg|webp|png)/, '-O.$1') : url
+    );
+
     return NextResponse.json({
       name: title || 'Produto sem Nome',
-      image_url: imageUrl || null,
+      image_url: finalImages[0] || null,
+      images: finalImages,
       is_search_link: false,
       platform,
     });

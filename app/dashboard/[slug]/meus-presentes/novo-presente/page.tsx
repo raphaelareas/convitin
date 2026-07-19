@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { 
-  Gift, ArrowLeft, Loader2, UploadCloud, Search, AlertCircle
+  Gift, ArrowLeft, Loader2, Plus, Trash2, Check, ShoppingBag
 } from 'lucide-react';
 
 interface PageProps {
@@ -20,16 +20,18 @@ export default function NewGiftPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [selectedList, setSelectedList] = useState<any>(null);
 
-  // Campos do Presente
+  // Form Fields
+  const [links, setLinks] = useState<string[]>(['']);
   const [giftName, setGiftName] = useState('');
-  const [giftLinkMl, setGiftLinkMl] = useState('');
-  const [giftLinkShopee, setGiftLinkShopee] = useState('');
-  const [giftLinkAmazon, setGiftLinkAmazon] = useState('');
   const [giftPrice, setGiftPrice] = useState('');
   const [giftImageUrl, setGiftImageUrl] = useState('');
   const [giftIsSearchLink, setGiftIsSearchLink] = useState(false);
-  const [scraping, setScraping] = useState(false);
+  
+  // Scraper Options / Loading States
+  const [scrapingIndex, setScrapingIndex] = useState<number | null>(null);
   const [giftSaveLoading, setGiftSaveLoading] = useState(false);
+  const [candidateImages, setCandidateImages] = useState<string[]>([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
 
   useEffect(() => {
     const checkUserAndFetchList = async () => {
@@ -40,7 +42,6 @@ export default function NewGiftPage({ params }: PageProps) {
       }
       setUser(session.user);
 
-      // Buscar se a lista com o slug pertence a este usuário logado
       const { data: listData, error: listError } = await supabase
         .from('lists')
         .select('*')
@@ -60,47 +61,90 @@ export default function NewGiftPage({ params }: PageProps) {
     checkUserAndFetchList();
   }, [slug, router]);
 
-  // Aciona o Scraper ao colar ou tirar o foco do input de links
-  const triggerScrape = async (url: string) => {
-    if (!url || scraping) return;
-    if (!/^https?:\/\//i.test(url)) return;
+  // Auxiliar para identificar plataforma
+  const getPlatform = (url: string) => {
+    if (!url) return 'other';
+    if (/mercadolivre\.com/i.test(url) || /mercadolibre/i.test(url)) return 'mercadolivre';
+    if (/shopee\.com/i.test(url) || /shp\.ee/i.test(url)) return 'shopee';
+    if (/amazon\.com/i.test(url)) return 'amazon';
+    return 'other';
+  };
 
-    setScraping(true);
-    try {
-      const res = await fetch(`/api/scrape?url=${encodeURIComponent(url)}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.name && !giftName) {
-          setGiftName(data.name);
+  const handleLinkChange = async (index: number, val: string) => {
+    const updatedLinks = [...links];
+    updatedLinks[index] = val;
+    setLinks(updatedLinks);
+
+    if (!val || !/^https?:\/\//i.test(val)) return;
+
+    // Apenas se for o primeiro link a ser preenchido (index === 0) ou se ainda não temos nome
+    const isFirstLink = index === 0 || !giftName;
+
+    if (isFirstLink) {
+      setScrapingIndex(index);
+      try {
+        const res = await fetch(`/api/scrape?url=${encodeURIComponent(val)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.name) {
+            setGiftName(data.name);
+          }
+          if (data.images && Array.isArray(data.images) && data.images.length > 0) {
+            setCandidateImages(data.images);
+            setGiftImageUrl(data.images[0]);
+            setSelectedImageIndex(0);
+          } else if (data.image_url) {
+            setCandidateImages([data.image_url]);
+            setGiftImageUrl(data.image_url);
+            setSelectedImageIndex(0);
+          } else {
+            setCandidateImages([]);
+            setGiftImageUrl('');
+          }
+
+          const isSearch = /lista\.mercadolivre\.com\.br/i.test(val) || 
+                           /\/search/i.test(val) || 
+                           /&search/i.test(val) || 
+                           /\/s\?/i.test(val) || 
+                           /busca/i.test(val);
+          setGiftIsSearchLink(isSearch);
         }
-        if (data.image_url) {
-          setGiftImageUrl(data.image_url);
-          setGiftIsSearchLink(false);
-        } else if (data.is_search_link) {
-          setGiftIsSearchLink(true);
-          setGiftImageUrl(''); 
-        }
+      } catch (err) {
+        console.error('Erro ao ler produto:', err);
+      } finally {
+        setScrapingIndex(null);
       }
-    } catch (err) {
-      console.error('Erro no auto-scrape do produto:', err);
-    } finally {
-      setScraping(false);
+    }
+  };
+
+  const addLinkField = () => {
+    if (links.length < 5) {
+      setLinks([...links, '']);
+    }
+  };
+
+  const removeLinkField = (index: number) => {
+    if (links.length > 1) {
+      const updated = links.filter((_, i) => i !== index);
+      setLinks(updated);
     }
   };
 
   const saveGift = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const activeLinks = links.filter(l => l.trim() !== '');
+    if (activeLinks.length === 0) {
+      alert('Por favor, insira pelo menos um link de presente.');
+      return;
+    }
     if (!giftName.trim()) {
       alert('Nome do presente é obrigatório.');
       return;
     }
-    if (!giftLinkMl && !giftLinkShopee && !giftLinkAmazon) {
-      alert('Preencha o link de pelo menos uma loja (Mercado Livre, Shopee ou Amazon).');
-      return;
-    }
 
     const cleanProductUrl = (url: string) => {
-      if (!url) return null;
+      if (!url) return '';
       const isSearch = /lista\.mercadolivre\.com\.br/i.test(url) || 
                        /\/search/i.test(url) || 
                        /&search/i.test(url) || 
@@ -110,67 +154,36 @@ export default function NewGiftPage({ params }: PageProps) {
       return url.trim().split('?')[0].split('#')[0];
     };
 
-    const cleanedLinkMl = cleanProductUrl(giftLinkMl);
-    const cleanedLinkShopee = cleanProductUrl(giftLinkShopee);
-    const cleanedLinkAmazon = cleanProductUrl(giftLinkAmazon);
+    // Mapear links ativos para as colunas do banco
+    let linkMl: string | null = null;
+    let linkShopee: string | null = null;
+    let linkAmazon: string | null = null;
+
+    activeLinks.forEach(lnk => {
+      const platform = getPlatform(lnk);
+      const cleaned = cleanProductUrl(lnk);
+      if (platform === 'mercadolivre') linkMl = cleaned;
+      else if (platform === 'shopee') linkShopee = cleaned;
+      else if (platform === 'amazon') linkAmazon = cleaned;
+      else {
+        // Fallback: se for outra plataforma, associamos na primeira vaga livre
+        if (!linkMl) linkMl = cleaned;
+        else if (!linkShopee) linkShopee = cleaned;
+        else if (!linkAmazon) linkAmazon = cleaned;
+      }
+    });
 
     setGiftSaveLoading(true);
     try {
-      let scrapedImageUrl = giftImageUrl;
-      let finalIsSearchLink = giftIsSearchLink;
-
-      // Se a imagem estiver em branco, roda o scraper final antes do insert
-      if (!giftImageUrl) {
-        const isSearchUrl = (url: string) => 
-          /lista\.mercadolivre\.com\.br/i.test(url) || 
-          /\/search/i.test(url) || 
-          /&search/i.test(url) || 
-          /\/s\?/i.test(url) || 
-          /busca/i.test(url);
-
-        const links = [cleanedLinkMl, cleanedLinkShopee, cleanedLinkAmazon].filter(Boolean) as string[];
-        const directLink = links.find(lnk => !isSearchUrl(lnk));
-        const firstLink = directLink || links[0];
-
-        if (firstLink && /^https?:\/\//i.test(firstLink)) {
-          try {
-            const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-            const timeoutId = controller ? setTimeout(() => {
-              try { controller.abort(); } catch(e) {}
-            }, 8000) : null;
- 
-            const fetchOptions: RequestInit = {};
-            if (controller) {
-              fetchOptions.signal = controller.signal;
-            }
- 
-            const res = await fetch(`/api/scrape?url=${encodeURIComponent(firstLink)}`, fetchOptions);
-            if (timeoutId) clearTimeout(timeoutId);
-
-            if (res.ok) {
-              const data = await res.json();
-              if (data.image_url) {
-                scrapedImageUrl = data.image_url;
-              }
-              if (data.is_search_link) {
-                finalIsSearchLink = true;
-              }
-            }
-          } catch (scrapeErr) {
-            console.warn('Erro ao buscar imagem no salvamento:', scrapeErr);
-          }
-        }
-      }
-
       const giftData = {
         list_id: selectedList.id,
         name: giftName,
-        link_ml: cleanedLinkMl,
-        link_shopee: cleanedLinkShopee,
-        link_amazon: cleanedLinkAmazon,
+        link_ml: linkMl,
+        link_shopee: linkShopee,
+        link_amazon: linkAmazon,
         price: giftPrice ? parseFloat(giftPrice) : null,
-        image_url: scrapedImageUrl || null,
-        is_search_link: finalIsSearchLink,
+        image_url: giftImageUrl || null,
+        is_search_link: giftIsSearchLink,
       };
 
       const { error } = await supabase
@@ -224,6 +237,73 @@ export default function NewGiftPage({ params }: PageProps) {
 
           <form onSubmit={saveGift} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', background: '#ffffff', padding: '1rem', borderRadius: '24px' }}>
             
+            {/* COMPONENTE DE MULTIPLOS LINKS */}
+            <div className="form-group">
+              <label>Links do Presente</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {links.map((link, idx) => {
+                  const plat = getPlatform(link);
+                  const isScraping = scrapingIndex === idx;
+
+                  return (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%' }}>
+                      <div style={{ position: 'relative', flex: 1 }}>
+                        <input
+                          type="url"
+                          placeholder="Cole o link aqui..."
+                          className="input-field"
+                          style={{ width: '100%', boxSizing: 'border-box', paddingRight: '2.5rem' }}
+                          value={link}
+                          onChange={(e) => handleLinkChange(idx, e.target.value)}
+                          required={idx === 0}
+                        />
+                        {isScraping ? (
+                          <Loader2 size={18} className="animate-spin" style={{ position: 'absolute', right: '12px', top: '12px', color: 'var(--primary)' }} />
+                        ) : plat !== 'other' && (
+                          <ShoppingBag size={18} style={{ position: 'absolute', right: '12px', top: '12px', color: '#10b981' }} />
+                        )}
+                      </div>
+                      
+                      {links.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeLinkField(idx)}
+                          className="btn btn-secondary"
+                          style={{ padding: '0.6rem', color: 'var(--accent)', border: '1px solid #cbd5e1' }}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {links.length < 5 && (
+                <button
+                  type="button"
+                  onClick={addLinkField}
+                  className="btn btn-secondary"
+                  style={{
+                    marginTop: '0.5rem',
+                    padding: '0.4rem 0.85rem',
+                    fontSize: '0.75rem',
+                    fontWeight: '700',
+                    border: '1px dashed var(--primary)',
+                    color: 'var(--primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    alignSelf: 'flex-start'
+                  }}
+                >
+                  <Plus size={14} />
+                  Adicionar outro link
+                </button>
+              )}
+            </div>
+
+            {/* CAMPOS COMPLEMENTARES (Nome do Presente e Preço Estimado) */}
             <div className="form-group">
               <label htmlFor="giftName">Nome do Presente</label>
               <input
@@ -237,53 +317,63 @@ export default function NewGiftPage({ params }: PageProps) {
               />
             </div>
 
-            <div className="form-group">
-              <label>Links das Lojas (Preenchimento automático ao colar)</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <div style={styles.linkInputRow}>
-                  <span style={styles.marketLabel}>ML</span>
-                  <input 
-                    type="url" 
-                    placeholder="https://produto.mercadolivre.com.br/..." 
-                    className="input-field" 
-                    style={{ flex: 1 }}
-                    value={giftLinkMl}
-                    onChange={(e) => setGiftLinkMl(e.target.value)}
-                    onBlur={(e) => triggerScrape(e.target.value)}
-                  />
-                </div>
-
-                <div style={styles.linkInputRow}>
-                  <span style={styles.marketLabel}>Shopee</span>
-                  <input 
-                    type="url" 
-                    placeholder="https://shopee.com.br/..." 
-                    className="input-field" 
-                    style={{ flex: 1 }}
-                    value={giftLinkShopee}
-                    onChange={(e) => setGiftLinkShopee(e.target.value)}
-                    onBlur={(e) => triggerScrape(e.target.value)}
-                  />
-                </div>
-
-                <div style={styles.linkInputRow}>
-                  <span style={styles.marketLabel}>Amazon</span>
-                  <input 
-                    type="url" 
-                    placeholder="https://www.amazon.com.br/..." 
-                    className="input-field" 
-                    style={{ flex: 1 }}
-                    value={giftLinkAmazon}
-                    onChange={(e) => setGiftLinkAmazon(e.target.value)}
-                    onBlur={(e) => triggerScrape(e.target.value)}
-                  />
+            {/* SELETOR DE IMAGENS CANDIDATAS */}
+            {scrapingIndex !== null ? (
+              <div style={{ padding: '1rem', border: '1px dashed #cbd5e1', borderRadius: '12px', background: '#f8fafc', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <Loader2 size={24} className="animate-spin" color="var(--primary)" />
+                <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#64748b' }}>Lendo informações e buscando imagens do produto...</span>
+              </div>
+            ) : candidateImages.length > 0 && (
+              <div className="form-group" style={{ marginBottom: '12px' }}>
+                <label>Selecione a imagem que mais representa ou faz sentido</label>
+                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '4px', overflowX: 'auto', padding: '4px 0' }}>
+                  {candidateImages.slice(0, 3).map((img, idx) => (
+                    <div 
+                      key={idx}
+                      onClick={() => {
+                        setSelectedImageIndex(idx);
+                        setGiftImageUrl(img);
+                      }}
+                      style={{
+                        position: 'relative',
+                        width: '76px',
+                        height: '76px',
+                        borderRadius: '8px',
+                        border: selectedImageIndex === idx ? '2px solid var(--primary)' : '2px solid #e2e8f0',
+                        backgroundImage: `url(${img})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        cursor: 'pointer',
+                        flexShrink: 0
+                      }}
+                    >
+                      {selectedImageIndex === idx && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '2px',
+                          right: '2px',
+                          background: 'var(--primary)',
+                          borderRadius: '50%',
+                          width: '16px',
+                          height: '16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#ffffff'
+                        }}>
+                          <Check size={10} strokeWidth={3} />
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
-              <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>Preencha pelo menos um campo acima.</small>
-            </div>
+            )}
 
             <div className="form-group">
-              <label htmlFor="giftPrice">Preço Estimado (R$ - Opcional)</label>
+              <label htmlFor="giftPrice">
+                Preço Estimado <small style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 'normal' }}>(Opcional)</small>
+              </label>
               <input
                 id="giftPrice"
                 type="number"
@@ -409,18 +499,6 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#64748b',
     fontSize: '0.9rem',
     fontWeight: '500',
-  },
-  linkInputRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  },
-  marketLabel: {
-    width: '60px',
-    fontSize: '0.75rem',
-    fontWeight: '700',
-    color: 'var(--text-muted)',
-    textAlign: 'right',
   },
   giftPreviewBox: {
     background: '#f8fafc',

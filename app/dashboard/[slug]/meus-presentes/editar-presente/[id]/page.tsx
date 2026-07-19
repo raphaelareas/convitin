@@ -280,7 +280,12 @@ export default function EditGiftPage({ params }: PageProps) {
                           className="input-field"
                           style={{ width: '100%', boxSizing: 'border-box', paddingRight: '2.5rem' }}
                           value={link}
-                          onChange={(e) => handleLinkChange(idx, e.target.value)}
+                          onChange={(e) => {
+                            const updatedLinks = [...links];
+                            updatedLinks[idx] = e.target.value;
+                            setLinks(updatedLinks);
+                          }}
+                          onBlur={(e) => handleLinkChange(idx, e.target.value)}
                           required={idx === 0}
                         />
                         {isScraping ? (

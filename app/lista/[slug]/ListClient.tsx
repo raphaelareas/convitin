@@ -60,6 +60,7 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
   const [showModal, setShowModal] = useState(false);
   const [reserveLoading, setReserveLoading] = useState(false);
   const [reserveQty, setReserveQty] = useState(1);
+  const [isAnonymous, setIsAnonymous] = useState(false);
 
   // Minhas reservas (localStorage)
   const [myReservations, setMyReservations] = useState<Record<string, { name: string; qty: number; reservedAt: string }>>({});
@@ -183,6 +184,7 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
     setFirstName('');
     setLastName('');
     setReserveQty(1);
+    setIsAnonymous(false);
     
     // Auto-seleção se houver apenas uma loja disponível
     const stores = [];
@@ -216,7 +218,7 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
         throw new Error('Ops! Alguém acabou de reservar este presente primeiro.');
       }
 
-      const fullName = `${firstName.trim()} ${lastName.trim()}`;
+      const fullName = isAnonymous ? 'Comprador Anônimo' : `${firstName.trim()} ${lastName.trim()}`;
 
       if (hasQuantity) {
         // Modo quantidade: incrementar quantity_reserved
@@ -956,15 +958,8 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
 
             <form onSubmit={(e) => {
               e.preventDefault();
-              // Validate and show floating tip if needed
-              if (!firstName.trim() && !lastName.trim()) {
+              if (!isAnonymous && !firstName.trim()) {
                 setValidationMsg('Preencha seu nome e sobrenome para continuar.');
-                setShowValidationTip(true);
-                setTimeout(() => setShowValidationTip(false), 3000);
-                return;
-              }
-              if (!firstName.trim() || !lastName.trim()) {
-                setValidationMsg(!firstName.trim() ? 'Informe seu nome.' : 'Informe seu sobrenome.');
                 setShowValidationTip(true);
                 setTimeout(() => setShowValidationTip(false), 3000);
                 return;
@@ -978,35 +973,47 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
               handleConfirmReserve(e);
             }} style={styles.modalForm}>
 
-              {/* Nome */}
+              {/* Nome e Sobrenome unificados */}
               <div className="form-group" style={{ margin: 0 }}>
-                <label htmlFor="firstName" style={{ fontSize: '0.8rem' }}>Nome</label>
+                <label htmlFor="fullNameInput" style={{ fontSize: '0.8rem' }}>Nome e Sobrenome</label>
                 <input
-                  id="firstName"
+                  id="fullNameInput"
                   type="text"
-                  placeholder="João"
+                  placeholder={isAnonymous ? 'Reserva anônima' : 'João Silva'}
                   className="input-field"
-                  value={firstName}
-                  onChange={(e) => { setFirstName(e.target.value); setShowValidationTip(false); }}
+                  value={isAnonymous ? '' : firstName}
+                  disabled={isAnonymous}
+                  style={{ opacity: isAnonymous ? 0.45 : 1, transition: 'opacity 0.2s' }}
+                  onChange={(e) => { setFirstName(e.target.value); setLastName(''); setShowValidationTip(false); }}
                 />
               </div>
 
-              {/* Sobrenome */}
-              <div className="form-group" style={{ margin: 0 }}>
-                <label htmlFor="lastName" style={{ fontSize: '0.8rem' }}>Sobrenome</label>
-                <input
-                  id="lastName"
-                  type="text"
-                  placeholder="Silva"
-                  className="input-field"
-                  value={lastName}
-                  onChange={(e) => { setLastName(e.target.value); setShowValidationTip(false); }}
-                />
+              {/* Toggle anônimo */}
+              <div
+                onClick={() => { setIsAnonymous(v => !v); setShowValidationTip(false); }}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', cursor: 'pointer', userSelect: 'none', marginTop: '0.4rem' }}
+              >
+                <div style={{
+                  width: '34px', height: '20px', borderRadius: '10px',
+                  background: isAnonymous ? 'var(--primary)' : '#cbd5e1',
+                  position: 'relative', transition: 'background 0.2s', flexShrink: 0,
+                }}>
+                  <div style={{
+                    position: 'absolute', top: '2px',
+                    left: isAnonymous ? '16px' : '2px',
+                    width: '16px', height: '16px', borderRadius: '50%',
+                    background: '#fff', transition: 'left 0.2s',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  }} />
+                </div>
+                <span style={{ fontSize: '0.8rem', fontWeight: '600', color: isAnonymous ? 'var(--primary)' : 'var(--text-muted)', lineHeight: 1.3 }}>
+                  Quero presentear de forma anônima
+                </span>
               </div>
 
               {/* Tip abaixo dos nomes */}
               <p style={{ fontSize: '0.73rem', color: 'var(--text-muted)', margin: '0.4rem 0 0', lineHeight: 1.4 }}>
-                💡 Preencha seu nome e selecione a loja para confirmar sua reserva.
+                {isAnonymous ? '🎭 Reserva anônima — apenas selecione a loja e confirme.' : '💡 Preencha seu nome e selecione a loja para confirmar sua reserva.'}
               </p>
 
               {/* Seletor de Quantidade */}
@@ -1168,7 +1175,7 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                   <button
                     type="submit"
                     className="btn btn-primary"
-                    disabled={reserveLoading || !firstName.trim() || !lastName.trim() || !selectedStore}
+                    disabled={reserveLoading || (!isAnonymous && !firstName.trim()) || !selectedStore}
                   >
                     {reserveLoading ? (
                       <>

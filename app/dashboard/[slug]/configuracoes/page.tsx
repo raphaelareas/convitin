@@ -71,6 +71,7 @@ export default function ListConfigurationsPage({ params }: PageProps) {
   const [listBannerUrl, setListBannerUrl] = useState('');
   const [listSlug, setListSlug] = useState('');
   const [listEventDate, setListEventDate] = useState('');
+  const [allowCompanions, setAllowCompanions] = useState(true);
   const [customBannerFile, setCustomBannerFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [listSaveLoading, setListSaveLoading] = useState(false);
@@ -105,6 +106,7 @@ export default function ListConfigurationsPage({ params }: PageProps) {
       setListBannerUrl(listData.banner_url || THEMES_DATA[listData.theme_color || 'classic']?.banners[0] || '');
       setListSlug(listData.slug);
       setListEventDate(listData.event_date || '');
+      setAllowCompanions(listData.allow_companions !== false); // default to true
       setLoading(false);
     };
 
@@ -158,6 +160,7 @@ export default function ListConfigurationsPage({ params }: PageProps) {
         banner_url: finalBannerUrl,
         slug: listSlug,
         event_date: listEventDate || null,
+        allow_companions: allowCompanions,
       };
 
       const { error } = await supabase
@@ -253,6 +256,20 @@ export default function ListConfigurationsPage({ params }: PageProps) {
                     onChange={(e) => setListSlug(e.target.value)}
                     required
                   />
+                </div>
+
+                <div className="form-group" style={{ margin: '0 0 1rem 0' }}>
+                  <div
+                    onClick={() => setAllowCompanions(v => !v)}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', cursor: 'pointer', userSelect: 'none', padding: '0.25rem 0.125rem' }}
+                  >
+                    <span style={{ fontSize: '0.875rem', fontWeight: '600', color: allowCompanions ? 'var(--primary)' : 'var(--text-main)', lineHeight: 1.3 }}>
+                      Permitir acompanhantes na lista de convidados?
+                    </span>
+                    <div style={{ width: '38px', height: '22px', borderRadius: '11px', background: allowCompanions ? 'var(--primary)' : '#cbd5e1', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                      <div style={{ position: 'absolute', top: '3px', left: allowCompanions ? '19px' : '3px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="form-group">

@@ -196,62 +196,66 @@ export default function GuestClient({ list }: GuestClientProps) {
                 )}
               </div>
 
-              {/* Toggle: vai levar acompanhante? */}
-              <div className="form-group" style={{ margin: 0 }}>
-                <div
-                  onClick={() => setHasCompanion(v => !v)}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', cursor: 'pointer', userSelect: 'none', padding: '0 0.125rem' }}
-                >
-                  <span style={{ fontSize: '0.875rem', fontWeight: '600', color: hasCompanion ? 'var(--primary)' : 'var(--text-main)', lineHeight: 1.3 }}>
-                    Vai levar acompanhante?
-                  </span>
-                  <div style={{ width: '38px', height: '22px', borderRadius: '11px', background: hasCompanion ? 'var(--primary)' : '#cbd5e1', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
-                    <div style={{ position: 'absolute', top: '3px', left: hasCompanion ? '19px' : '3px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+              {/* Toggle: vai levar acompanhante? (só se permitido na lista) */}
+              {list.allow_companions !== false && (
+                <>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <div
+                      onClick={() => setHasCompanion(v => !v)}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', cursor: 'pointer', userSelect: 'none', padding: '0 0.125rem' }}
+                    >
+                      <span style={{ fontSize: '0.875rem', fontWeight: '600', color: hasCompanion ? 'var(--primary)' : 'var(--text-main)', lineHeight: 1.3 }}>
+                        Vai levar acompanhante?
+                      </span>
+                      <div style={{ width: '38px', height: '22px', borderRadius: '11px', background: hasCompanion ? 'var(--primary)' : '#cbd5e1', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                        <div style={{ position: 'absolute', top: '3px', left: hasCompanion ? '19px' : '3px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Seletor de quantidade de acompanhantes */}
-              {hasCompanion && (
-                <div className="form-group animate-fade-in" style={{ margin: 0 }}>
-                  <label style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
-                    Quantos acompanhantes?
-                  </label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <button
-                      type="button"
-                      onClick={() => setCompanions(v => Math.max(1, v - 1))}
-                      style={{ width: '36px', height: '36px', borderRadius: '8px', border: '1px solid var(--card-border)', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-main)', flexShrink: 0 }}
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <input
-                      type="number"
-                      min={1}
-                      max={20}
-                      value={companions}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === '') { setCompanions(1); return; }
-                        const n = parseInt(val);
-                        if (!isNaN(n)) setCompanions(Math.min(20, Math.max(1, n)));
-                      }}
-                      onBlur={() => { if (!companions || companions < 1) setCompanions(1); }}
-                      className="input-field no-spinners"
-                      style={{ width: '70px', textAlign: 'center', padding: '0.5rem' }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setCompanions(v => Math.min(20, v + 1))}
-                      style={{ width: '36px', height: '36px', borderRadius: '8px', border: '1px solid var(--card-border)', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-main)', flexShrink: 0 }}
-                    >
-                      <Plus size={16} />
-                    </button>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                      {companions === 1 ? 'pessoa' : 'pessoas'}
-                    </span>
-                  </div>
-                </div>
+                  {/* Seletor de quantidade de acompanhantes */}
+                  {hasCompanion && (
+                    <div className="form-group animate-fade-in" style={{ margin: 0 }}>
+                      <label style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
+                        Quantos acompanhantes?
+                      </label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <button
+                          type="button"
+                          onClick={() => setCompanions(v => Math.max(1, v - 1))}
+                          style={{ width: '36px', height: '36px', borderRadius: '8px', border: '1px solid var(--card-border)', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-main)', flexShrink: 0 }}
+                        >
+                          <Minus size={16} />
+                        </button>
+                        <input
+                          type="number"
+                          min={1}
+                          max={20}
+                          value={companions}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === '') { setCompanions(1); return; }
+                            const n = parseInt(val);
+                            if (!isNaN(n)) setCompanions(Math.min(20, Math.max(1, n)));
+                          }}
+                          onBlur={() => { if (!companions || companions < 1) setCompanions(1); }}
+                          className="input-field no-spinners"
+                          style={{ width: '70px', textAlign: 'center', padding: '0.5rem' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setCompanions(v => Math.min(20, v + 1))}
+                          style={{ width: '36px', height: '36px', borderRadius: '8px', border: '1px solid var(--card-border)', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-main)', flexShrink: 0 }}
+                        >
+                          <Plus size={16} />
+                        </button>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                          {companions === 1 ? 'pessoa' : 'pessoas'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
 
               {/* Botao de confirmar */}

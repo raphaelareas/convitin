@@ -881,6 +881,14 @@ input, textarea, select {
   .public-list-info-container {
     margin-top: -28px !important;
   }
+  
+  .desktop-only-table {
+    display: none !important;
+  }
+  
+  .mobile-only-list {
+    display: flex !important;
+  }
 }
 
 /* Hide number input spinners/arrows */

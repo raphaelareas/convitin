@@ -18,6 +18,24 @@ export default function GuestListPage({ params }: PageProps) {
   const [guests, setGuests] = useState<any[]>([]);
   const [confirmModal, setConfirmModal] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [allowCompanions, setAllowCompanions] = useState(true);
+
+  const toggleAllowCompanions = async () => {
+    const nextVal = !allowCompanions;
+    setAllowCompanions(nextVal);
+    
+    try {
+      const { error } = await supabase
+        .from('lists')
+        .update({ allow_companions: nextVal })
+        .eq('id', selectedList.id);
+      if (error) throw error;
+      setSelectedList({ ...selectedList, allow_companions: nextVal });
+    } catch (err) {
+      alert('Erro ao atualizar permissão de acompanhantes.');
+      setAllowCompanions(!nextVal); // revert
+    }
+  };
 
   const copyGuestLink = () => {
     const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/lista/${slug}/convidados`;
@@ -33,6 +51,7 @@ export default function GuestListPage({ params }: PageProps) {
       const { data: listData, error } = await supabase.from('lists').select('*').eq('slug', slug).eq('user_id', session.user.id).single();
       if (error || !listData) { router.push('/dashboard'); return; }
       setSelectedList(listData);
+      setAllowCompanions(listData.allow_companions !== false);
       await fetchGuests(listData.id);
     };
     init();
@@ -119,62 +138,141 @@ export default function GuestListPage({ params }: PageProps) {
               {copied ? <Check size={16} /> : <Share2 size={16} />}
               {copied ? 'Link copiado!' : 'Compartilhar lista de presença'}
             </button>
+
+            {/* Quick Toggle: Permitir acompanhantes como double-check */}
+            <div style={{ marginTop: '0.5rem', background: 'rgba(var(--primary-rgb), 0.03)', border: '1px dashed rgba(var(--primary-rgb), 0.15)', borderRadius: '10px', padding: '0.65rem 0.85rem' }}>
+              <div
+                onClick={toggleAllowCompanions}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', cursor: 'pointer', userSelect: 'none' }}
+              >
+                <span style={{ fontSize: '0.8rem', fontWeight: '700', color: allowCompanions ? 'var(--primary)' : 'var(--text-main)' }}>
+                  Permitir acompanhantes na lista?
+                </span>
+                <div style={{ width: '34px', height: '20px', borderRadius: '10px', background: allowCompanions ? 'var(--primary)' : '#cbd5e1', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                  <div style={{ position: 'absolute', top: '3px', left: allowCompanions ? '17px' : '3px', width: '14px', height: '14px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-            {([['Confirmacoes', totalGuests, '✅'], ['Acompanhantes', totalCompanions, '👥'], ['Total de Pessoas', totalPeople, '🎉']] as const).map(([label, value, emoji]) => (
-              <div key={label} className="glass-card" style={{ flex: '1 1 140px', padding: '0.75rem 1.25rem', background: '#ffffff', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.15rem', textAlign: 'center' }}>
-                <span style={{ fontSize: '1.4rem' }}>{emoji}</span>
-                <span style={{ fontSize: '1.75rem', fontWeight: '800', color: 'var(--primary)', lineHeight: 1 }}>{value}</span>
-                <span style={{ fontSize: '0.78rem', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</span>
+            {[
+              { label: 'Confirmações', value: totalGuests, emoji: '✅', disabled: false },
+              { label: allowCompanions ? 'Acompanhantes' : 'Acompanhantes (Desativado)', value: allowCompanions ? totalCompanions : 'Não permitido', emoji: '👥', disabled: !allowCompanions },
+              { label: 'Total de Pessoas', value: totalPeople, emoji: '🎉', disabled: false }
+            ].map(({ label, value, emoji, disabled }) => (
+              <div key={label} className="glass-card" style={{
+                flex: '1 1 140px',
+                padding: '0.75rem 1.25rem',
+                background: '#ffffff',
+                borderRadius: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '0.15rem',
+                textAlign: 'center',
+                opacity: disabled ? 0.45 : 1,
+                border: disabled ? '1px dashed #cbd5e1' : undefined,
+                transition: 'all 0.2s ease',
+              }}>
+                <span style={{ fontSize: '1.4rem', filter: disabled ? 'grayscale(1)' : undefined }}>{emoji}</span>
+                <span style={{ fontSize: typeof value === 'number' ? '1.75rem' : '1.1rem', fontWeight: '800', color: disabled ? '#94a3b8' : 'var(--primary)', lineHeight: 1.2 }}>{value}</span>
+                <span style={{ fontSize: '0.72rem', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</span>
               </div>
             ))}
           </div>
 
-          <div className="glass-card" style={{ padding: '2.5rem', background: '#ffffff', borderRadius: '24px', width: '100%' }}>
-            <div style={{ border: '1px solid #f1f5f9', borderRadius: '12px', overflow: 'hidden' }}>
-              {guests.length === 0 ? (
-                <div style={{ padding: '4rem 1.5rem', textAlign: 'center', color: '#64748b' }}>
-                  <Users size={48} style={{ marginBottom: '1rem', color: '#cbd5e1', display: 'inline-block' }} />
-                  <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>Nenhum convidado confirmou presenca ainda.</p>
-                  <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: '#94a3b8' }}>
-                    Compartilhe <strong>/lista/{selectedList.slug}/convidados</strong> para receber confirmacoes.
-                  </p>
+          <div className="glass-card" style={{ padding: '2rem 1.5rem', background: '#ffffff', borderRadius: '24px', width: '100%', boxSizing: 'border-box' }}>
+            {guests.length === 0 ? (
+              <div style={{ padding: '4rem 1.5rem', textAlign: 'center', color: '#64748b' }}>
+                <Users size={48} style={{ marginBottom: '1rem', color: '#cbd5e1', display: 'inline-block' }} />
+                <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>Nenhum convidado confirmou presença ainda.</p>
+                <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: '#94a3b8' }}>
+                  Compartilhe <strong>/lista/{selectedList.slug}/convidados</strong> para receber confirmações.
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* layout desktop: Tabela (escondida no mobile via css/media query) */}
+                <div className="desktop-only-table" style={{ border: '1px solid #f1f5f9', borderRadius: '12px', overflow: 'hidden' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
+                        <th style={{ padding: '1rem', fontWeight: '700', color: '#475569' }}>Nome</th>
+                        <th style={{ padding: '1rem', fontWeight: '700', color: '#475569', textAlign: 'center' }}>Acompanhantes</th>
+                        <th style={{ padding: '1rem', fontWeight: '700', color: '#475569' }}>Confirmado em</th>
+                        <th style={{ padding: '1rem', fontWeight: '700', color: '#475569', textAlign: 'center' }}>Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {guests.map((guest: any) => (
+                        <tr key={guest.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '1rem', fontWeight: '600', color: '#0f172a' }}>{guest.name}</td>
+                          <td style={{ padding: '1rem', textAlign: 'center' }}>
+                            {guest.companions > 0 ? (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(var(--primary-rgb), 0.08)', color: 'var(--primary)', borderRadius: '6px', padding: '0.2rem 0.6rem', fontSize: '0.8rem', fontWeight: '700' }}>
+                                +{guest.companions}
+                              </span>
+                            ) : <span style={{ color: '#94a3b8' }}>—</span>}
+                          </td>
+                          <td style={{ padding: '1rem', color: '#64748b' }}>{formatDate(guest.created_at)}</td>
+                          <td style={{ padding: '1rem', textAlign: 'center' }}>
+                            <button onClick={() => removeGuest(guest.id, guest.name)} className="btn btn-secondary"
+                              style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', border: '1px solid #fecaca', color: '#ef4444', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                              <Trash2 size={13} /> Remover
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', textAlign: 'left' }}>
-                  <thead>
-                    <tr style={{ background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
-                      <th style={{ padding: '1rem', fontWeight: '700', color: '#475569' }}>Nome</th>
-                      <th style={{ padding: '1rem', fontWeight: '700', color: '#475569', textAlign: 'center' }}>Acompanhantes</th>
-                      <th style={{ padding: '1rem', fontWeight: '700', color: '#475569' }}>Confirmado em</th>
-                      <th style={{ padding: '1rem', fontWeight: '700', color: '#475569', textAlign: 'center' }}>Acoes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {guests.map((guest: any) => (
-                      <tr key={guest.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '1rem', fontWeight: '600', color: '#0f172a' }}>{guest.name}</td>
-                        <td style={{ padding: '1rem', textAlign: 'center' }}>
+
+                {/* layout mobile: Cards empilhados de duas linhas, sem scroll (escondido no desktop via css) */}
+                <div className="mobile-only-list" style={{ display: 'none', flexDirection: 'column', gap: '0.75rem' }}>
+                  {guests.map((guest: any) => (
+                    <div key={guest.id} style={{ border: '1px solid #f1f5f9', borderRadius: '12px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.6rem', background: '#f8fafc' }}>
+                      {/* Linha 1: Nome (esquerda) e Confirmado em (direita) */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: '700', color: '#0f172a', fontSize: '0.9rem' }}>{guest.name}</span>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{formatDate(guest.created_at)}</span>
+                      </div>
+                      {/* Linha 2: Acompanhantes (esquerda) e Deletar (direita) */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed #e2e8f0', paddingTop: '0.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: '500' }}>Acompanhantes:</span>
                           {guest.companions > 0 ? (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(var(--primary-rgb), 0.08)', color: 'var(--primary)', borderRadius: '6px', padding: '0.2rem 0.6rem', fontSize: '0.8rem', fontWeight: '700' }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(var(--primary-rgb), 0.08)', color: 'var(--primary)', borderRadius: '6px', padding: '0.15rem 0.45rem', fontSize: '0.75rem', fontWeight: '700' }}>
                               +{guest.companions}
                             </span>
-                          ) : <span style={{ color: '#94a3b8' }}>--</span>}
-                        </td>
-                        <td style={{ padding: '1rem', color: '#64748b' }}>{formatDate(guest.created_at)}</td>
-                        <td style={{ padding: '1rem', textAlign: 'center' }}>
-                          <button onClick={() => removeGuest(guest.id, guest.name)} className="btn btn-secondary"
-                            style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', border: '1px solid #fecaca', color: '#ef4444', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                            <Trash2 size={13} /> Remover
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+                          ) : (
+                            <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Nenhum</span>
+                          )}
+                        </div>
+                        <button 
+                          onClick={() => removeGuest(guest.id, guest.name)} 
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#ef4444',
+                            fontSize: '0.75rem',
+                            fontWeight: '700',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                            cursor: 'pointer',
+                            padding: '0.25rem'
+                          }}
+                        >
+                          <Trash2 size={13} />
+                          <span>Remover</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </main>

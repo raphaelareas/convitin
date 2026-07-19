@@ -231,8 +231,29 @@ export async function GET(request: Request) {
     });
 
     if (!response.ok) {
+      // Tentar adivinhar o nome do produto a partir da URL se o request falhar (por exemplo, 403 Cloudflare/Akamai)
+      let extractedTitle = 'Produto sem Nome';
+      try {
+        const pathPart = cleanedUrl.split('/').pop() || '';
+        let titlePart = pathPart;
+        if (titlePart.includes('.')) {
+          titlePart = titlePart.split('.')[0];
+        }
+        if (titlePart.includes('-')) {
+          extractedTitle = decodeURIComponent(titlePart)
+            .replace(/-/g, ' ')
+            .replace(/_/g, ' ')
+            .trim();
+          // Capitalizar palavras
+          extractedTitle = extractedTitle
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+        }
+      } catch(e){}
+
       return NextResponse.json({
-        name: isSearchLink ? 'Resultado de Busca' : 'Produto da ' + platform.charAt(0).toUpperCase() + platform.slice(1),
+        name: extractedTitle,
         image_url: null,
         is_search_link: isSearchLink,
         platform,

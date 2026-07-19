@@ -1,5 +1,5 @@
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-const url = 'https://br.shp.ee/PR7GjzM6';
+const url = 'https://shopee.com.br/product/1461262933/22893672283?d_id=09c67&uls_trackid=56600js000kj&utm_content=2vdyJjRtX2PRdajRYheh9XVv57Q3';
 async function test() {
   try {
     const res = await fetch(url, {
@@ -9,7 +9,6 @@ async function test() {
       }
     });
     console.log('Status:', res.status);
-    console.log('Final URL:', res.url);
     const text = await res.text();
     console.log('HTML Length:', text.length);
     

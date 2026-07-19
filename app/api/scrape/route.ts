@@ -105,10 +105,52 @@ export async function GET(request: Request) {
     // CASO 1: SHOPEE (Estratégia Especial de Bypass por URL + Busca na Amazon/ML)
     // =========================================================================
     if (platform === 'shopee' && !isSearchLink) {
-      // Extrair título do produto diretamente da URL da Shopee (que é muito descritiva e limpa)
+      // 1. Tentar obter metadados fingindo ser o WhatsApp (traz og:title e og:image prontos da Shopee)
+      try {
+        const response = await fetch(cleanedUrl, {
+          headers: {
+            'User-Agent': 'WhatsApp/2.24.4.8 A',
+          },
+          next: { revalidate: 3600 }
+        });
+        if (response.ok) {
+          const html = await response.text();
+          const titleRegex = /<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i;
+          const imageRegex = /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i;
+          
+          const titleMatch = html.match(titleRegex);
+          const imageMatch = html.match(imageRegex);
+          
+          if (titleMatch && titleMatch[1]) {
+            let extractedTitle = titleMatch[1]
+              .replace(/&amp;/g, '&')
+              .replace(/&quot;/g, '"')
+              .replace(/&#39;/g, "'")
+              .replace(/\s*[-\|]\s*(Shopee).*$/i, '')
+              .trim();
+
+            const imageUrls: string[] = [];
+            if (imageMatch && imageMatch[1]) {
+              imageUrls.push(imageMatch[1]);
+            }
+
+            // O WhatsApp nos dá o og:title e og:image originais da shopee prontinhos!
+            return NextResponse.json({
+              name: extractedTitle,
+              image_url: imageUrls[0] || null,
+              images: imageUrls,
+              is_search_link: false,
+              platform,
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Erro ao obter metadados da Shopee via WhatsApp User-Agent:', err);
+      }
+
+      // 2. Fallback caso falhe (por exemplo, URL sem dados)
       const urlWithoutQuery = targetUrl.split('?')[0].split('#')[0];
       const pathPart = urlWithoutQuery.split('/').pop() || '';
-      // A URL da Shopee pode ser: /nome-do-produto-i.123.456 ou /product/123/456 ou /nome-do-produto
       let titlePart = pathPart;
       if (pathPart.includes('-i.')) {
         titlePart = pathPart.split('-i.')[0];
@@ -117,14 +159,12 @@ export async function GET(request: Request) {
       }
       let extractedTitle = decodeURIComponent(titlePart).replace(/-/g, ' ').replace(/_/g, ' ').trim();
  
-      // Sanitizar título se veio apenas IDs numéricos ou lixo
       if (!extractedTitle || /^\d+$/.test(extractedTitle) || extractedTitle.length < 3) {
         const parts = urlWithoutQuery.split('/');
         const penUlt = parts[parts.length - 2] || '';
         if (penUlt && !/^(product|item|shop|category|s|i|c)$/i.test(penUlt)) {
           extractedTitle = decodeURIComponent(penUlt).replace(/-/g, ' ').replace(/_/g, ' ').trim();
         } else {
-          // Tentar adivinhar extraindo de parâmetros da URL caso existam
           const matchQueryParam = targetUrl.match(/utm_content=([^&]+)/) || targetUrl.match(/keyword=([^&]+)/);
           if (matchQueryParam && matchQueryParam[1]) {
             extractedTitle = decodeURIComponent(matchQueryParam[1]).replace(/-/g, ' ').replace(/_/g, ' ').trim();
@@ -134,12 +174,10 @@ export async function GET(request: Request) {
         }
       }
 
-      // Se for apenas número ou IDs e não pudermos adivinhar, damos fallback genérico
       if (/^\d+$/.test(extractedTitle)) {
         extractedTitle = 'Produto da Shopee';
       }
 
-      // Capitalizar palavras
       if (extractedTitle !== 'Produto da Shopee') {
         extractedTitle = extractedTitle
           .split(' ')
@@ -147,7 +185,6 @@ export async function GET(request: Request) {
           .join(' ');
       }
 
-      // Buscar imagens de fallback
       const fallbackImages: string[] = [];
       if (extractedTitle !== 'Produto da Shopee') {
         try {

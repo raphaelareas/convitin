@@ -419,13 +419,13 @@ export default function Dashboard() {
                   <div style={styles.listsGrid}>
                     {lists.map((list) => (
                       <div key={list.id} className="glass-card" style={styles.listCard}>
-                        {/* Botão de excluir flutuante no topo direito do card */}
+                        {/* Botão de excluir flutuante no topo direito do card, alinhado a 16px */}
                         <button
                           onClick={() => deleteList(list.id)}
                           style={{
                             position: 'absolute',
-                            top: '24px',
-                            right: '24px',
+                            top: '16px',
+                            right: '16px',
                             background: 'rgba(255, 255, 255, 0.85)',
                             backdropFilter: 'blur(8px)',
                             WebkitBackdropFilter: 'blur(8px)',
@@ -455,29 +455,36 @@ export default function Dashboard() {
                               position: 'relative'
                             }} 
                           >
-                            {/* Data do Evento com fundo glassmorphism flutuante no topo esquerdo do banner, alinhado ao padding de 24px */}
-                            <div style={{
-                              position: 'absolute',
-                              top: '24px',
-                              left: '24px',
-                              background: 'rgba(255, 255, 255, 0.85)',
-                              backdropFilter: 'blur(8px)',
-                              WebkitBackdropFilter: 'blur(8px)',
-                              border: '1px solid rgba(255, 255, 255, 0.4)',
-                              padding: '0.35rem 0.7rem',
-                              borderRadius: '6px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.25rem',
-                              fontSize: '0.72rem',
-                              fontWeight: '700',
-                              color: '#1e293b',
-                              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-                              zIndex: 2,
-                            }}>
-                              <Calendar size={12} color="#1e293b" />
-                              {list.event_date ? new Date(list.event_date + 'T00:00:00').toLocaleDateString('pt-BR') : new Date(list.created_at).toLocaleDateString('pt-BR')}
-                            </div>
+                            {/* Link de Visualizar Lista flutuante no topo esquerdo do banner, alinhado a 16px */}
+                            <a 
+                              href={`/lista/${list.slug}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="btn btn-secondary"
+                              style={{
+                                position: 'absolute',
+                                top: '16px',
+                                left: '16px',
+                                background: 'rgba(255, 255, 255, 0.85)',
+                                backdropFilter: 'blur(8px)',
+                                WebkitBackdropFilter: 'blur(8px)',
+                                border: '1px solid rgba(255, 255, 255, 0.4)',
+                                padding: '0.4rem 0.75rem',
+                                borderRadius: '6px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.35rem',
+                                fontSize: '0.72rem',
+                                fontWeight: '700',
+                                color: '#1e293b',
+                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+                                zIndex: 2,
+                                textDecoration: 'none',
+                              }}
+                            >
+                              <span>Visualizar Lista</span>
+                              <ExternalLink size={11} color="#1e293b" />
+                            </a>
                           </div>
                         )}
                         <div style={styles.listCardContent}>
@@ -501,6 +508,34 @@ export default function Dashboard() {
                               🎁 {list.gifts ? list.gifts.filter((g: any) => g.status === 'reservado').length : 0} {list.gifts && list.gifts.filter((g: any) => g.status === 'reservado').length === 1 ? 'presente reservado' : 'presentes reservados'}
                             </span>
                           </div>
+                          {/* Data do Evento e Botão Editar Lista (com ícone Edit2/lápis) */}
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', margin: '0.35rem 0 0.15rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.72rem', fontWeight: '700', color: 'var(--text-muted)' }}>
+                              <Calendar size={12} color="var(--text-muted)" />
+                              <span>
+                                {list.event_date ? new Date(list.event_date + 'T00:00:00').toLocaleDateString('pt-BR') : new Date(list.created_at).toLocaleDateString('pt-BR')}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => router.push(`/dashboard/${list.slug}/configuracoes`)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'var(--primary)',
+                                fontSize: '0.72rem',
+                                fontWeight: '700',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.25rem',
+                                cursor: 'pointer',
+                                padding: 0
+                              }}
+                            >
+                              <Edit2 size={12} />
+                              <span>Editar lista</span>
+                            </button>
+                          </div>
+
                           {/* Bloco de título e descrição com gap reduzido */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', marginBottom: '0.3rem' }}>
                             <h3 className="list-card-title-heading" style={{ ...styles.listCardTitle, margin: 0 }}>{list.title}</h3>
@@ -508,84 +543,28 @@ export default function Dashboard() {
                           </div>
                           
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem' }}>
-                            {/* LINHA 1: Ver minha lista | Compartilhar Lista */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%' }}>
-                              {/* Ver minha lista */}
-                              <a 
-                                href={`/lista/${list.slug}`} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="btn btn-secondary"
-                                style={{
-                                  padding: '0.55rem 0.5rem',
-                                  fontSize: '0.78rem',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  gap: '0.35rem',
-                                  height: '38px',
-                                  flex: 1,
-                                  textDecoration: 'none',
-                                  boxSizing: 'border-box'
-                                }}
-                              >
-                                <span>Visualizar Lista</span>
-                                <ExternalLink size={12} />
-                              </a>
+                            {/* LINHA 1: Gerenciar meus presentes */}
+                            <button 
+                              onClick={() => router.push(`/dashboard/${list.slug}/meus-presentes`)} 
+                              className="btn btn-primary" 
+                              style={{ 
+                                width: '100%', 
+                                fontSize: '0.825rem', 
+                                padding: '0.55rem 0.75rem', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                gap: '0.35rem', 
+                                height: '38px', 
+                                boxSizing: 'border-box', 
+                                whiteSpace: 'nowrap' 
+                              }}
+                            >
+                              <Gift size={14} />
+                              <span>Gerenciar meus presentes</span>
+                            </button>
 
-                              {/* Compartilhar */}
-                              <div style={{ position: 'relative', flex: 1 }}>
-                                <button 
-                                  onClick={() => copyShareLink(list.slug, list.id)} 
-                                  className="btn btn-secondary"
-                                  style={{
-                                    padding: '0.55rem 0.5rem',
-                                    fontSize: '0.78rem',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '0.35rem',
-                                    height: '38px',
-                                    width: '100%',
-                                    boxSizing: 'border-box'
-                                  }}
-                                >
-                                  <span>Compartilhar</span>
-                                  <Share size={13} />
-                                </button>
-                                
-                                {copiedId === list.id && (
-                                  <div style={{
-                                    position: 'absolute',
-                                    bottom: '125%',
-                                    left: '50%',
-                                    transform: 'translateX(-50%)',
-                                    background: '#1e293b',
-                                    color: '#ffffff',
-                                    fontSize: '0.7rem',
-                                    padding: '0.25rem 0.5rem',
-                                    borderRadius: '4px',
-                                    whiteSpace: 'nowrap',
-                                    zIndex: 10,
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                                    animation: 'fade-in 0.15s ease-out',
-                                  }}>
-                                    Link copiado!
-                                    <div style={{
-                                      position: 'absolute',
-                                      top: '100%',
-                                      left: '50%',
-                                      transform: 'translateX(-50%)',
-                                      borderWidth: '4px',
-                                      borderStyle: 'solid',
-                                      borderColor: '#1e293b transparent transparent transparent'
-                                    }} />
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* LINHA 2: Ver produtos reservados */}
+                            {/* LINHA 2: Ver presentes reservados */}
                             <button 
                               onClick={() => router.push(`/dashboard/${list.slug}/reservados`)}
                               style={{
@@ -608,52 +587,82 @@ export default function Dashboard() {
                                 boxSizing: 'border-box'
                               }}
                             >
-                              <span>Ver produtos reservados</span>
+                              <span>Ver presentes reservados</span>
                             </button>
 
-                            {/* LINHA 3: Gerenciar meus presentes */}
+                            {/* LINHA 3: Ver lista de convidados */}
                             <button 
-                              onClick={() => router.push(`/dashboard/${list.slug}/meus-presentes`)} 
-                              className="btn btn-primary" 
-                              style={{ 
-                                width: '100%', 
-                                fontSize: '0.825rem', 
-                                padding: '0.55rem 0.75rem', 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center', 
-                                gap: '0.35rem', 
-                                height: '38px', 
-                                boxSizing: 'border-box', 
-                                whiteSpace: 'nowrap' 
-                              }}
-                            >
-                              <Gift size={14} />
-                              <span>Gerenciar meus presentes</span>
-                            </button>
-
-                            {/* LINHA 4: Configurar lista (ghost style) */}
-                            <button 
-                              onClick={() => router.push(`/dashboard/${list.slug}/configuracoes`)} 
-                              style={{ 
-                                width: '100%', 
-                                fontSize: '0.825rem', 
-                                background: 'none',
-                                border: 'none',
-                                color: 'var(--primary)',
-                                textDecoration: 'underline',
+                              onClick={() => router.push(`/dashboard/${list.slug}/lista-convidados`)}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.35rem',
+                                padding: '0.55rem 0.75rem',
+                                fontSize: '0.78rem',
                                 fontWeight: '700',
-                                padding: '0.4rem 0.75rem', 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center', 
-                                gap: '0.35rem', 
+                                width: '100%',
+                                height: '38px',
+                                border: '1px solid var(--primary)',
+                                color: 'var(--primary)',
+                                background: 'transparent',
+                                borderRadius: '8px',
                                 cursor: 'pointer',
-                                boxSizing: 'border-box' 
+                                transition: 'var(--transition-smooth)',
+                                outline: 'none',
+                                boxSizing: 'border-box'
                               }}
                             >
-                              <Settings size={14} />
-                              <span>Configurar lista</span>
+                              <span>Ver lista de convidados</span>
+                            </button>
+
+                            {/* LINHA 4: Compartilhar lista */}
+                            <button 
+                              onClick={() => copyShareLink(list.slug, list.id)} 
+                              className="btn btn-secondary"
+                              style={{
+                                padding: '0.55rem 0.5rem',
+                                fontSize: '0.78rem',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.35rem',
+                                height: '38px',
+                                width: '100%',
+                                boxSizing: 'border-box',
+                                position: 'relative'
+                              }}
+                            >
+                              <span>Compartilhar lista</span>
+                              <Share size={13} />
+                              {copiedId === list.id && (
+                                <div style={{
+                                  position: 'absolute',
+                                  bottom: '125%',
+                                  left: '50%',
+                                  transform: 'translateX(-50%)',
+                                  background: '#1e293b',
+                                  color: '#ffffff',
+                                  fontSize: '0.7rem',
+                                  padding: '0.25rem 0.5rem',
+                                  borderRadius: '4px',
+                                  whiteSpace: 'nowrap',
+                                  zIndex: 10,
+                                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                                  animation: 'fade-in 0.15s ease-out',
+                                }}>
+                                  Link copiado!
+                                  <div style={{
+                                    position: 'absolute',
+                                    top: '100%',
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                    borderWidth: '4px',
+                                    borderStyle: 'solid',
+                                    borderColor: '#1e293b transparent transparent transparent'
+                                  }} />
+                                </div>
+                              )}
                             </button>
                           </div>
                         </div>

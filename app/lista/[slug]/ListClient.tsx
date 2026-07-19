@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
-import { Gift, ExternalLink, Heart, CheckCircle2, User, Loader2, Sparkles, Copy, Check, LayoutGrid, Square, List, ArrowRight, LogOut } from 'lucide-react';
+import { Gift, ExternalLink, Heart, CheckCircle2, User, Loader2, Sparkles, Copy, Check, LayoutGrid, Square, List, ArrowRight, LogOut, ShoppingBag } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 // Logos de marketplace — limpos, sem fundo retangular, 36x36
@@ -136,6 +136,22 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
     }
   };
 
+  const getStoreNameFromUrl = (url: string) => {
+    if (!url) return '';
+    try {
+      const hostname = new URL(url).hostname.replace('www.', '');
+      const parts = hostname.split('.');
+      let name = parts[0];
+      if (name === 'mercadolivre' || name === 'mercadolibre') return 'Mercado Livre';
+      return name.charAt(0).toUpperCase() + name.slice(1);
+    } catch (e) {
+      if (/mercadolivre/i.test(url)) return 'Mercado Livre';
+      if (/shopee/i.test(url)) return 'Shopee';
+      if (/amazon/i.test(url)) return 'Amazon';
+      return 'Loja';
+    }
+  };
+
   const handleOpenReserve = (gift: any) => {
     setSelectedGift(gift);
     setFirstName('');
@@ -187,15 +203,15 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
       // Definir URL e nome do marketplace para redirecionamento
       let storeUrl = '';
       let storeName = '';
-      if (selectedStore === 'ml') {
+      if (selectedStore === 'ml' && selectedGift.link_ml) {
         storeUrl = selectedGift.link_ml;
-        storeName = 'Mercado Livre';
-      } else if (selectedStore === 'shopee') {
+        storeName = getStoreNameFromUrl(storeUrl);
+      } else if (selectedStore === 'shopee' && selectedGift.link_shopee) {
         storeUrl = selectedGift.link_shopee;
-        storeName = 'Shopee';
-      } else if (selectedStore === 'amazon') {
+        storeName = getStoreNameFromUrl(storeUrl);
+      } else if (selectedStore === 'amazon' && selectedGift.link_amazon) {
         storeUrl = selectedGift.link_amazon;
-        storeName = 'Amazon';
+        storeName = getStoreNameFromUrl(storeUrl);
       }
 
       // Sucesso!
@@ -859,8 +875,12 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                         color: 'var(--text-main)', textAlign: 'left', width: '100%',
                       }}
                     >
-                      <MercadoLivreIcon />
-                      Mercado Livre
+                      <img 
+                        src={`https://www.google.com/s2/favicons?sz=64&domain=${new URL(selectedGift.link_ml).hostname}`} 
+                        alt="Store logo" 
+                        style={{ width: '20px', height: '20px', borderRadius: '4px', objectFit: 'contain' }}
+                      />
+                      {getStoreNameFromUrl(selectedGift.link_ml)}
                       {selectedStore === 'ml' && <CheckCircle2 size={16} color="var(--primary)" style={{ marginLeft: 'auto' }} />}
                     </button>
                   )}
@@ -879,8 +899,12 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                         color: 'var(--text-main)', textAlign: 'left', width: '100%',
                       }}
                     >
-                      <ShopeeIcon />
-                      Shopee
+                      <img 
+                        src={`https://www.google.com/s2/favicons?sz=64&domain=${new URL(selectedGift.link_shopee).hostname}`} 
+                        alt="Store logo" 
+                        style={{ width: '20px', height: '20px', borderRadius: '4px', objectFit: 'contain' }}
+                      />
+                      {getStoreNameFromUrl(selectedGift.link_shopee)}
                       {selectedStore === 'shopee' && <CheckCircle2 size={16} color="var(--primary)" style={{ marginLeft: 'auto' }} />}
                     </button>
                   )}
@@ -899,8 +923,12 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                         color: 'var(--text-main)', textAlign: 'left', width: '100%',
                       }}
                     >
-                      <AmazonIcon />
-                      Amazon
+                      <img 
+                        src={`https://www.google.com/s2/favicons?sz=64&domain=${new URL(selectedGift.link_amazon).hostname}`} 
+                        alt="Store logo" 
+                        style={{ width: '20px', height: '20px', borderRadius: '4px', objectFit: 'contain' }}
+                      />
+                      {getStoreNameFromUrl(selectedGift.link_amazon)}
                       {selectedStore === 'amazon' && <CheckCircle2 size={16} color="var(--primary)" style={{ marginLeft: 'auto' }} />}
                     </button>
                   )}

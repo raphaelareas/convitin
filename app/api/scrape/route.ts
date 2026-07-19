@@ -300,14 +300,28 @@ export async function GET(request: Request) {
 
     // Extração de múltiplas imagens do HTML
     const imageUrls: string[] = [];
-    if (imageUrl) {
+
+    // Se for Amazon, tenta pescar prioritariamente as imagens da galeria no bloco de scripts/JSON
+    if (platform === 'amazon') {
+      const amzRegexDynamic = /"large":"([^"]+)"/g;
+      const dynamicMatches = html.matchAll(amzRegexDynamic);
+      for (const m of dynamicMatches) {
+        if (imageUrls.length >= 6) break;
+        const imgUrl = m[1];
+        if (!imageUrls.includes(imgUrl) && !/logo|brand|sprite|favicon|placeholder/i.test(imgUrl)) {
+          imageUrls.push(imgUrl);
+        }
+      }
+    }
+
+    if (imageUrl && !imageUrls.includes(imageUrl) && !/logo|brand|sprite|favicon|placeholder/i.test(imageUrl)) {
       imageUrls.push(imageUrl);
     }
 
     // Buscar imagens adicionais no HTML
     const imgMatches = html.matchAll(/<img[^>]*src=["'](https:\/\/[^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/gi);
     for (const match of imgMatches) {
-      if (imageUrls.length >= 3) break;
+      if (imageUrls.length >= 6) break;
       const imgUrl = match[1];
       // Ignorar logos, favicons, trackers ou imagens muito pequenas ou repetidas
       if (
@@ -315,23 +329,6 @@ export async function GET(request: Request) {
         !imageUrls.includes(imgUrl)
       ) {
         imageUrls.push(imgUrl);
-      }
-    }
-
-    // Se ainda tiver menos de 3 e for Amazon, buscar no JSON de imagens dinâmicas
-    if (imageUrls.length < 3 && platform === 'amazon') {
-      const amzRegex4 = /data-a-dynamic-image=["']([^"']+)["']/g;
-      const amzMatches = html.matchAll(amzRegex4);
-      for (const m of amzMatches) {
-        if (imageUrls.length >= 3) break;
-        try {
-          const cleanJson = m[1].replace(/&quot;/g, '"');
-          const urls = Object.keys(JSON.parse(cleanJson));
-          for (const url of urls) {
-            if (imageUrls.length >= 3) break;
-            if (!imageUrls.includes(url)) imageUrls.push(url);
-          }
-        } catch (e) {}
       }
     }
 

@@ -99,11 +99,11 @@ export async function GET(request: Request) {
 
     // Verificar se parece uma busca ou lista
     const isSearchLink = 
-      /lista\.mercadolivre\.com\.br/i.test(cleanedUrl) || 
-      /\/search/i.test(cleanedUrl) || 
-      /&search/i.test(cleanedUrl) || 
-      /\/s\?/i.test(cleanedUrl) || 
-      /busca/i.test(cleanedUrl);
+      (/lista\.mercadolivre\.com\.br/i.test(cleanedUrl) || 
+       /\/search/i.test(cleanedUrl) || 
+       /&search/i.test(cleanedUrl) || 
+       /\/s\?/i.test(cleanedUrl) || 
+       /busca/i.test(cleanedUrl)) && !/\/p\/MLB[0-9]+/i.test(cleanedUrl);
 
     // Se NÃO for link de busca, limpamos os parâmetros adicionais (query strings ?... e hashes #...)
     if (!isSearchLink) {

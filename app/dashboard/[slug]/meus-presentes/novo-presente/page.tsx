@@ -113,11 +113,11 @@ export default function NewGiftPage({ params }: PageProps) {
             setGiftImageUrl('');
           }
 
-          const isSearch = /lista\.mercadolivre\.com\.br/i.test(cleanVal) || 
-                           /\/search/i.test(cleanVal) || 
-                           /&search/i.test(cleanVal) || 
-                           /\/s\?/i.test(cleanVal) || 
-                           /busca/i.test(cleanVal);
+          const isSearch = (/lista\.mercadolivre\.com\.br/i.test(cleanVal) || 
+                            /\/search/i.test(cleanVal) || 
+                            /&search/i.test(cleanVal) || 
+                            /\/s\?/i.test(cleanVal) || 
+                            /busca/i.test(cleanVal)) && !/\/p\/MLB[0-9]+/i.test(cleanVal);
           setGiftIsSearchLink(isSearch);
         }
       } catch (err) {

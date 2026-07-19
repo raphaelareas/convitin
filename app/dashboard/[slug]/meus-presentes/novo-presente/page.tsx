@@ -71,11 +71,16 @@ export default function NewGiftPage({ params }: PageProps) {
   };
 
   const handleLinkChange = async (index: number, val: string) => {
+    let cleanVal = val.trim();
+    if (cleanVal && !/^https?:\/\//i.test(cleanVal)) {
+      cleanVal = 'https://' + cleanVal;
+    }
+
     const updatedLinks = [...links];
-    updatedLinks[index] = val;
+    updatedLinks[index] = cleanVal;
     setLinks(updatedLinks);
 
-    if (!val || !/^https?:\/\//i.test(val)) return;
+    if (!cleanVal || !/^https?:\/\//i.test(cleanVal)) return;
 
     // Apenas se for o primeiro link a ser preenchido (index === 0) ou se ainda não temos nome
     const isFirstLink = index === 0 || !giftName;
@@ -83,7 +88,7 @@ export default function NewGiftPage({ params }: PageProps) {
     if (isFirstLink) {
       setScrapingIndex(index);
       try {
-        const res = await fetch(`/api/scrape?url=${encodeURIComponent(val)}`);
+        const res = await fetch(`/api/scrape?url=${encodeURIComponent(cleanVal)}`);
         if (res.ok) {
           const data = await res.json();
           if (data.name) {
@@ -102,11 +107,11 @@ export default function NewGiftPage({ params }: PageProps) {
             setGiftImageUrl('');
           }
 
-          const isSearch = /lista\.mercadolivre\.com\.br/i.test(val) || 
-                           /\/search/i.test(val) || 
-                           /&search/i.test(val) || 
-                           /\/s\?/i.test(val) || 
-                           /busca/i.test(val);
+          const isSearch = /lista\.mercadolivre\.com\.br/i.test(cleanVal) || 
+                           /\/search/i.test(cleanVal) || 
+                           /&search/i.test(cleanVal) || 
+                           /\/s\?/i.test(cleanVal) || 
+                           /busca/i.test(cleanVal);
           setGiftIsSearchLink(isSearch);
         }
       } catch (err) {

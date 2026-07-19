@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import puppeteer from 'puppeteer-core';
 
 // Desabilitar rejeição de certificados TLS localmente em modo desenvolvimento para evitar erros de SSL
 if (process.env.NODE_ENV === 'development') {
@@ -7,7 +6,6 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export async function GET(request: Request) {
-  let browser = null;
   try {
     const { searchParams } = new URL(request.url);
     const targetUrl = searchParams.get('url');
@@ -21,14 +19,77 @@ export async function GET(request: Request) {
 
     let cleanedUrl = targetUrl.trim();
 
-    // Adiciona protocolo se não houver
-    if (!/^https?:\/\//i.test(cleanedUrl)) {
-      cleanedUrl = 'https://' + cleanedUrl;
+    // Identificar links encurtados da Shopee (shp.ee ou br.shp.ee) ou Mercado Livre (meli.la ou meli.li)
+    if (/shp\.ee|meli\.la|meli\.li/i.test(cleanedUrl)) {
+      try {
+        const isMeli = /meli\.la|meli\.li/i.test(cleanedUrl);
+        const res = await fetch(cleanedUrl, {
+          method: 'GET',
+          headers: {
+            'User-Agent': 'WhatsApp/2.24.4.8 A',
+          }
+        });
+        if (res.ok) {
+          const html = await res.text();
+          
+          // Procurar og:title e og:image direto do encurtador (como o WhatsApp faz)
+          const titleRegex = /<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i;
+          const imageRegex = /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i;
+          
+          const titleMatch = html.match(titleRegex);
+          const imageMatch = html.match(imageRegex);
+          
+          // Procurar pela variável CONFIG.httpUrl no código script para obter o link limpo expandido
+          const configMatch = html.match(/httpUrl\s*:\s*["']([^"']+)["']/i);
+          let expandedUrl = cleanedUrl;
+          if (configMatch && configMatch[1]) {
+            expandedUrl = configMatch[1].replace(/\\/g, '');
+          } else if (isMeli && res.url && res.url !== cleanedUrl) {
+            // No caso do Mercado Livre meli.la, a resposta do fetch traz o redirect final no res.url
+            expandedUrl = res.url;
+          }
+
+          if (titleMatch && titleMatch[1]) {
+            let extractedTitle = titleMatch[1]
+              .replace(/&amp;/g, '&')
+              .replace(/&quot;/g, '"')
+              .replace(/&#39;/g, "'")
+              .replace(/\s*[-\|]\s*(Shopee|Mercado Livre).*$/i, '')
+              .trim();
+
+            const imageUrls: string[] = [];
+            if (imageMatch && imageMatch[1]) {
+              let imgUrl = imageMatch[1];
+              if (isMeli) {
+                imgUrl = imgUrl.replace(/-(?:I|E)\.(jpg|webp|png)/, '-O.$1');
+              }
+              imageUrls.push(imgUrl);
+            }
+
+            return NextResponse.json({
+              name: extractedTitle,
+              image_url: imageUrls[0] || null,
+              images: imageUrls,
+              is_search_link: false,
+              platform: isMeli ? 'mercadolivre' : 'shopee',
+              url: expandedUrl // Retorna a URL original expandida para salvar no banco
+            });
+          }
+
+          if (configMatch && configMatch[1]) {
+            cleanedUrl = expandedUrl;
+          } else if (isMeli && res.url) {
+            cleanedUrl = res.url;
+          }
+        }
+      } catch (err) {
+        console.warn('Erro ao ler link encurtado via regex:', err);
+      }
     }
 
-    // Identificar a plataforma de forma básica
+    // Identificar a plataforma
     let platform: 'mercadolivre' | 'shopee' | 'amazon' | 'other' = 'other';
-    if (/mercadolivre\.com/i.test(cleanedUrl) || /mercadolibre/i.test(cleanedUrl) || /meli\.(la|li)/i.test(cleanedUrl)) {
+    if (/mercadolivre\.com/i.test(cleanedUrl) || /mercadolibre/i.test(cleanedUrl)) {
       platform = 'mercadolivre';
     } else if (/shopee\.com/i.test(cleanedUrl) || /shp\.ee/i.test(cleanedUrl)) {
       platform = 'shopee';
@@ -36,7 +97,7 @@ export async function GET(request: Request) {
       platform = 'amazon';
     }
 
-    // Identificar se parece uma busca
+    // Verificar se parece uma busca ou lista
     const isSearchLink = 
       (/lista\.mercadolivre\.com\.br/i.test(cleanedUrl) || 
        /\/search/i.test(cleanedUrl) || 
@@ -44,118 +105,207 @@ export async function GET(request: Request) {
        /\/s\?/i.test(cleanedUrl) || 
        /busca/i.test(cleanedUrl)) && !/\/p\/MLB[0-9]+/i.test(cleanedUrl);
 
-    // No ambiente local e de produção, tentamos achar o executável do Chrome do sistema
-    const chromePath = 
-      process.platform === 'win32'
-        ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
-        : process.platform === 'darwin'
-        ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-        : '/usr/bin/google-chrome';
-    
-    const options = {
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-infobars',
-        '--window-position=0,0',
-        '--ignore-certifcate-errors',
-        '--ignore-certifcate-errors-spki-list',
-        '--disable-blink-features=AutomationControlled',
-      ],
-      executablePath: chromePath,
-      headless: true,
-    };
-
-    // Inicia o navegador
-    browser = await puppeteer.launch(options);
-    const page = await browser.newPage();
-    
-    // Configura headers do Chrome real completo
-    await page.setExtraHTTPHeaders({
-      'accept-language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
-    });
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-    
-    // Sobrescrever a propriedade navigator.webdriver para burlar a detecção do Akamai/Cloudflare
-    await page.evaluateOnNewDocument(() => {
-      Object.defineProperty(navigator, 'webdriver', {
-        get: () => undefined,
-      });
-      Object.defineProperty(navigator, 'plugins', {
-        get: () => [1, 2, 3],
-      });
-      Object.defineProperty(navigator, 'languages', {
-        get: () => ['pt-BR', 'pt'],
-      });
-    });
-
-    // Configura viewport padrão
-    await page.setViewport({ width: 1920, height: 1080 });
-
-    // Navega até a página de produto. Usamos 'domcontentloaded' para ler metatags mesmo com bloqueios
-    let loadFailed = false;
-    let pageTitle = '';
-    let pageHtml = '';
-    let finalUrl = cleanedUrl;
-
-    try {
-      const response = await page.goto(cleanedUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
-      // Se der 403 (bloqueado por Akamai no headless), tentamos ler metatags a partir da URL no fallback
-      if (response && response.status() === 403) {
-        loadFailed = true;
+    // Se NÃO for link de busca, limpamos os parâmetros adicionais (query strings ?... e hashes #...)
+    if (!isSearchLink) {
+      if (platform === 'mercadolivre' && cleanedUrl.includes('/p/')) {
+        const matchItemId = cleanedUrl.match(/item_id%3A(MLB[0-9]+)/i) || cleanedUrl.match(/item_id=(MLB[0-9]+)/i);
+        const baseUrl = cleanedUrl.split('?')[0].split('#')[0];
+        if (matchItemId && matchItemId[1] && !baseUrl.includes(matchItemId[1])) {
+          cleanedUrl = `${baseUrl}?pdp_filters=item_id%3D${matchItemId[1]}`;
+        } else {
+          cleanedUrl = baseUrl;
+        }
+      } else {
+        cleanedUrl = cleanedUrl.split('?')[0].split('#')[0];
       }
-      finalUrl = page.url();
-      pageTitle = await page.title();
-      pageHtml = await page.content();
-    } catch(err) {
-      loadFailed = true;
     }
 
-    let title = '';
-    let candidateImages: string[] = [];
+    // =========================================================================
+    // CASO 1: SHOPEE (Estratégia Especial de Bypass por URL + Busca na Amazon/ML)
+    // =========================================================================
+    if (platform === 'shopee' && !isSearchLink) {
+      try {
+        const response = await fetch(cleanedUrl, {
+          headers: {
+            'User-Agent': 'WhatsApp/2.24.4.8 A',
+          },
+          next: { revalidate: 3600 }
+        });
+        if (response.ok) {
+          const html = await response.text();
+          const titleRegex = /<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i;
+          const imageRegex = /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i;
+          
+          const titleMatch = html.match(titleRegex);
+          const imageMatch = html.match(imageRegex);
+          
+          if (titleMatch && titleMatch[1]) {
+            let extractedTitle = titleMatch[1]
+              .replace(/&amp;/g, '&')
+              .replace(/&quot;/g, '"')
+              .replace(/&#39;/g, "'")
+              .replace(/\s*[-\|]\s*(Shopee).*$/i, '')
+              .trim();
 
-    // Se o headless carregou a página com sucesso (200 OK)
-    if (!loadFailed && pageHtml) {
-      // Extrair título
-      const metaTitle = await page.evaluate(() => {
-        const og = document.querySelector('meta[property="og:title"]');
-        if (og) return og.getAttribute('content');
-        const h1 = document.querySelector('h1');
-        if (h1) return h1.innerText;
-        return null;
-      });
-
-      title = metaTitle || pageTitle || '';
-
-      // Extrair imagens da página
-      let images = await page.evaluate(() => {
-        const list: string[] = [];
-        const ogImg = document.querySelector('meta[property="og:image"]');
-        if (ogImg && ogImg.getAttribute('content')) {
-          const url = ogImg.getAttribute('content');
-          if (url && url.startsWith('http')) list.push(url);
-        }
-
-        const imgs = Array.from(document.querySelectorAll('img'));
-        for (const img of imgs) {
-          const src = img.src || img.getAttribute('data-src') || img.getAttribute('data-lazy');
-          if (src && src.startsWith('http')) {
-            if (!/logo|favicon|brand|placeholder|banner|sprite|pixel|analytics|loading|icon/i.test(src)) {
-              if (!list.includes(src)) {
-                list.push(src);
-              }
+            const imageUrls: string[] = [];
+            if (imageMatch && imageMatch[1]) {
+              imageUrls.push(imageMatch[1]);
             }
+
+            return NextResponse.json({
+              name: extractedTitle,
+              image_url: imageUrls[0] || null,
+              images: imageUrls,
+              is_search_link: false,
+              platform,
+            });
           }
         }
-        return list;
-      });
+      } catch (err) {
+        console.warn('Erro ao obter metadados da Shopee via WhatsApp User-Agent:', err);
+      }
 
-      candidateImages = images;
+      const urlWithoutQuery = targetUrl.split('?')[0].split('#')[0];
+      const pathPart = urlWithoutQuery.split('/').pop() || '';
+      let titlePart = pathPart;
+      if (pathPart.includes('-i.')) {
+        titlePart = pathPart.split('-i.')[0];
+      } else if (pathPart.includes('.')) {
+        titlePart = pathPart.split('.')[0];
+      }
+      let extractedTitle = decodeURIComponent(titlePart).replace(/-/g, ' ').replace(/_/g, ' ').trim();
+ 
+      if (!extractedTitle || /^\d+$/.test(extractedTitle) || extractedTitle.length < 3) {
+        const parts = urlWithoutQuery.split('/');
+        const penUlt = parts[parts.length - 2] || '';
+        if (penUlt && !/^(product|item|shop|category|s|i|c)$/i.test(penUlt)) {
+          extractedTitle = decodeURIComponent(penUlt).replace(/-/g, ' ').replace(/_/g, ' ').trim();
+        } else {
+          const matchQueryParam = targetUrl.match(/utm_content=([^&]+)/) || targetUrl.match(/keyword=([^&]+)/);
+          if (matchQueryParam && matchQueryParam[1]) {
+            extractedTitle = decodeURIComponent(matchQueryParam[1]).replace(/-/g, ' ').replace(/_/g, ' ').trim();
+          } else {
+            extractedTitle = 'Produto da Shopee';
+          }
+        }
+      }
+
+      if (/^\d+$/.test(extractedTitle)) {
+        extractedTitle = 'Produto da Shopee';
+      }
+
+      if (extractedTitle !== 'Produto da Shopee') {
+        extractedTitle = extractedTitle
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+      }
+
+      const fallbackImages: string[] = [];
+      if (extractedTitle !== 'Produto da Shopee') {
+        try {
+          const amzSearchUrl = `https://www.amazon.com.br/s?k=${encodeURIComponent(extractedTitle)}`;
+          const amzRes = await fetch(amzSearchUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+              'Accept-Language': 'pt-BR,pt;q=0.9',
+            },
+            next: { revalidate: 3600 }
+          });
+          if (amzRes.ok) {
+            const amzHtml = await amzRes.text();
+            const amzMatches = amzHtml.matchAll(/<img[^>]*class=["']s-image["'][^>]*src=["']([^"']+)["']/gi);
+            for (const match of amzMatches) {
+              if (fallbackImages.length >= 3) break;
+              const imgUrl = match[1];
+              if (!fallbackImages.includes(imgUrl)) fallbackImages.push(imgUrl);
+            }
+          }
+        } catch (e) {
+          console.warn('Erro ao pescar imagens da Shopee:', e);
+        }
+      }
+
+      return NextResponse.json({
+        name: extractedTitle,
+        image_url: fallbackImages[0] || null,
+        images: fallbackImages,
+        is_search_link: false,
+        platform,
+      });
     }
 
-    // Se falhou (403/Timeout) ou não trouxe imagens/título, ativamos o fallback via nome de URL + busca
-    if (loadFailed || !title || title === 'Produto sem Nome' || candidateImages.length === 0) {
-      // Adivinhar nome do produto pela URL
+    // =========================================================================
+    // CASO 2: MERCADO LIVRE (Googlebot User-Agent Bypass para obter HTML completo)
+    // =========================================================================
+    if (platform === 'mercadolivre' && !isSearchLink) {
+      try {
+        const response = await fetch(cleanedUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'pt-BR,pt;q=0.9',
+          },
+          next: { revalidate: 3600 }
+        });
+
+        if (response.ok) {
+          const html = await response.text();
+
+          const imageRegex = /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i;
+          const imageMatch = html.match(imageRegex);
+          let imageUrl = imageMatch ? imageMatch[1] : '';
+
+          const titleRegex = /<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i;
+          const altTitleRegex = /<title>([^<]+)<\/title>/i;
+          const titleMatch = html.match(titleRegex) || html.match(altTitleRegex);
+          let title = titleMatch ? titleMatch[1] : '';
+
+          title = title
+            .replace(/&amp;/g, '&')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/\s*[-\|]\s*(Mercado Livre|Amazon|Shopee).*$/i, '')
+            .trim();
+
+          if (imageUrl) {
+            imageUrl = imageUrl.replace(/-(?:I|E)\.(jpg|webp|png)/, '-O.$1');
+          }
+
+          if (title && imageUrl) {
+            return NextResponse.json({
+              name: title,
+              image_url: imageUrl,
+              images: [imageUrl],
+              is_search_link: false,
+              platform,
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Erro ao raspar Mercado Livre com Googlebot:', err);
+      }
+    }
+
+    // =========================================================================
+    // CASO 3: OUTROS E FALLBACKS (Scraper HTTP Tradicional + Fallback via URL)
+    // =========================================================================
+    const headers: Record<string, string> = {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+    };
+
+    const response = await fetch(cleanedUrl, {
+      headers,
+      next: { revalidate: 3600 },
+    });
+
+    if (!response.ok) {
+      let extractedTitle = 'Produto sem Nome';
       try {
         const urlObj = new URL(cleanedUrl);
         const paths = urlObj.pathname.split('/').filter(Boolean);
@@ -182,82 +332,181 @@ export async function GET(request: Request) {
             return true;
           });
           
-          let guessedTitle = decodeURIComponent(filteredSegments.join(' ')).replace(/_/g, ' ').trim();
-          guessedTitle = guessedTitle
+          extractedTitle = decodeURIComponent(filteredSegments.join(' '))
+            .replace(/_/g, ' ')
+            .trim();
+          extractedTitle = extractedTitle
             .split(' ')
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
-
-          if (guessedTitle) {
-            title = guessedTitle;
-          }
         }
       } catch(e){}
 
-      // Buscar imagens de fallback na Amazon
-      if (title && title !== 'Produto sem Nome') {
+      const fallbackImages: string[] = [];
+      if (extractedTitle !== 'Produto sem Nome') {
         try {
-          const amzSearchUrl = `https://www.amazon.com.br/s?k=${encodeURIComponent(title)}`;
+          const amzSearchUrl = `https://www.amazon.com.br/s?k=${encodeURIComponent(extractedTitle)}`;
           const amzRes = await fetch(amzSearchUrl, {
             headers: {
               'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
               'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
               'Accept-Language': 'pt-BR,pt;q=0.9',
-            }
+            },
+            next: { revalidate: 3600 }
           });
           if (amzRes.ok) {
             const amzHtml = await amzRes.text();
             const amzMatches = amzHtml.matchAll(/<img[^>]*class=["']s-image["'][^>]*src=["']([^"']+)["']/gi);
             for (const match of amzMatches) {
-              if (candidateImages.length >= 3) break;
+              if (fallbackImages.length >= 3) break;
               const imgUrl = match[1];
-              if (!candidateImages.includes(imgUrl)) candidateImages.push(imgUrl);
+              if (!fallbackImages.includes(imgUrl)) fallbackImages.push(imgUrl);
             }
           }
         } catch (e) {
-          console.warn('Erro ao obter imagens no fallback do Puppeteer:', e);
+          console.warn('Erro na busca de imagem fallback:', e);
+        }
+      }
+
+      const defaultSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 24 24' fill='none' stroke='%23f59e0b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='background:%23fef3c7;border-radius:16px;'><rect x='3' y='11' width='18' height='10' rx='2'/><path d='M12 2v20'/><path d='M2 11h20'/><path d='M7.5 7.5a2.5 2.5 0 0 1 0-5C11 2.5 12 7.5 12 7.5s-1-5-4.5-5z'/><path d='M16.5 7.5a2.5 2.5 0 0 0 0-5C13 2.5 12 7.5 12 7.5s1-5 4.5-5z'/></svg>";
+      let finalFallback = fallbackImages;
+      if (finalFallback.length === 0) {
+        finalFallback = [defaultSvg];
+      }
+
+      return NextResponse.json({
+        name: extractedTitle,
+        image_url: finalFallback[0] || defaultSvg,
+        images: finalFallback,
+        is_search_link: isSearchLink,
+        platform,
+      });
+    }
+
+    const html = await response.text();
+    let imageUrl = '';
+    let title = '';
+
+    if (isSearchLink) {
+      if (platform === 'mercadolivre') {
+        const mlSearchImg = html.match(/<img[^>]*class=["'](?:ui-search-result-image__element|poly-component__picture)[^"']*["'][^>]*src=["']([^"']+)["']/i) ||
+                            html.match(/<img[^>]*src=["']([^"']+)["'][^>]*class=["'](?:ui-search-result-image__element|poly-component__picture)[^"']*["']/i) ||
+                            html.match(/data-src=["']([^"']+)["']/i);
+        if (mlSearchImg && mlSearchImg[1]) imageUrl = mlSearchImg[1];
+      } else if (platform === 'amazon') {
+        const amzSearchImg = html.match(/<img[^>]*class=["']s-image["'][^>]*src=["']([^"']+)["']/i) ||
+                             html.match(/<img[^>]*src=["']([^"']+)["'][^>]*class=["']s-image["']/i);
+        if (amzSearchImg && amzSearchImg[1]) imageUrl = amzSearchImg[1];
+      }
+    } else {
+      const titleRegex = /<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i;
+      const altTitleRegex = /<title>([^<]+)<\/title>/i;
+      const titleMatch = html.match(titleRegex);
+      if (titleMatch && titleMatch[1]) {
+        title = titleMatch[1];
+      } else {
+        const altMatch = html.match(altTitleRegex);
+        if (altMatch && altMatch[1]) {
+          title = altMatch[1];
+        }
+      }
+      title = title
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .trim();
+      title = title.replace(/\s*[-\|]\s*(Mercado Livre|Amazon|Shopee).*$/i, '');
+
+      const imageRegex = /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i;
+      const twitterImageRegex = /<meta[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i;
+      const imageMatch = html.match(imageRegex);
+      if (imageMatch && imageMatch[1]) {
+        imageUrl = imageMatch[1];
+      } else {
+        const twitterMatch = html.match(twitterImageRegex);
+        if (twitterMatch && twitterMatch[1]) {
+          imageUrl = twitterMatch[1];
         }
       }
     }
 
-    // Sanitizar título final
-    title = title
-      .replace(/&amp;/g, '&')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/\s*[-\|]\s*(Mercado Livre|Amazon|Shopee|Casas Bahia|Extra|Ponto Frio).*$/i, '')
-      .trim();
-
-    // Ajusta imagens para alta resolução dependendo da plataforma
-    let finalImages = candidateImages.map(url => {
-      if (platform === 'mercadolivre') {
-        return url.replace(/-(?:I|E)\.(jpg|webp|png)/, '-O.$1');
+    const imageUrls: string[] = [];
+    if (platform === 'amazon') {
+      const amzRegexDynamic = /"large":"([^"]+)"/g;
+      const dynamicMatches = html.matchAll(amzRegexDynamic);
+      for (const m of dynamicMatches) {
+        if (imageUrls.length >= 6) break;
+        const imgUrl = m[1];
+        if (!imageUrls.includes(imgUrl) && !/logo|brand|sprite|favicon|placeholder/i.test(imgUrl)) {
+          imageUrls.push(imgUrl);
+        }
       }
-      return url;
-    });
+    }
 
-    // Fechar navegador
-    await browser.close();
-    browser = null;
+    if (imageUrl && !imageUrls.includes(imageUrl) && !/logo|brand|sprite|favicon|placeholder/i.test(imageUrl)) {
+      imageUrls.push(imageUrl);
+    }
+
+    const imgMatches = html.matchAll(/<img[^>]*src=["'](https:\/\/[^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/gi);
+    for (const match of imgMatches) {
+      if (imageUrls.length >= 6) break;
+      const imgUrl = match[1];
+      if (
+        !/logo|favicon|brand|placeholder|banner|sprite|pixel|analytics|loading|icon/i.test(imgUrl) &&
+        !imageUrls.includes(imgUrl)
+      ) {
+        imageUrls.push(imgUrl);
+      }
+    }
+
+    let finalImages = imageUrls.map(url => 
+      platform === 'mercadolivre' ? url.replace(/-(?:I|E)\.(jpg|webp|png)/, '-O.$1') : url
+    );
+
+    if (finalImages.length === 0 && title) {
+      try {
+        const amzSearchUrl = `https://www.amazon.com.br/s?k=${encodeURIComponent(title)}`;
+        const amzRes = await fetch(amzSearchUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'pt-BR,pt;q=0.9',
+          },
+          next: { revalidate: 3600 }
+        });
+        if (amzRes.ok) {
+          const amzHtml = await amzRes.text();
+          const amzMatches = amzHtml.matchAll(/<img[^>]*class=["']s-image["'][^>]*src=["']([^"']+)["']/gi);
+          for (const match of amzMatches) {
+            if (finalImages.length >= 3) break;
+            const imgUrl = match[1];
+            if (!finalImages.includes(imgUrl)) finalImages.push(imgUrl);
+          }
+        }
+      } catch (e) {
+        console.warn('Erro ao obter imagem de fallback no scraper principal:', e);
+      }
+    }
+
+    const defaultSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 24 24' fill='none' stroke='%23f59e0b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='background:%23fef3c7;border-radius:16px;'><rect x='3' y='11' width='18' height='10' rx='2'/><path d='M12 2v20'/><path d='M2 11h20'/><path d='M7.5 7.5a2.5 2.5 0 0 1 0-5C11 2.5 12 7.5 12 7.5s-1-5-4.5-5z'/><path d='M16.5 7.5a2.5 2.5 0 0 0 0-5C13 2.5 12 7.5 12 7.5s1-5 4.5-5z'/></svg>";
+
+    if (finalImages.length === 0) {
+      finalImages = [defaultSvg];
+    }
 
     return NextResponse.json({
       name: title || 'Produto sem Nome',
-      image_url: finalImages[0] || null,
-      images: finalImages.slice(0, 6),
-      is_search_link: isSearchLink,
+      image_url: finalImages[0] || defaultSvg,
+      images: finalImages,
+      is_search_link: false,
       platform,
-      url: finalUrl
     });
-
   } catch (error: any) {
-    console.error('Puppeteer scraper error:', error);
-    if (browser) {
-      try {
-        await browser.close();
-      } catch(e){}
-    }
+    console.error('Scraper error:', error);
     return NextResponse.json(
-      { error: 'Scraper failed to run browser engine' },
+      { error: 'Failed to scrape metadata' },
       { status: 500 }
     );
   }

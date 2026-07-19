@@ -114,42 +114,52 @@ export default function EditGiftPage({ params }: PageProps) {
 
     if (isFirstLink) {
       setScrapingIndex(index);
+      const startTime = Date.now();
       try {
         const res = await fetch(`/api/scrape?url=${encodeURIComponent(cleanVal)}`);
         if (res.ok) {
           const data = await res.json();
-          if (data.url) {
-            cleanVal = data.url;
-            const finalLinks = [...links];
-            finalLinks[index] = cleanVal;
-            setLinks(finalLinks);
-          }
-          if (data.name) {
-            setGiftName(data.name);
-          }
-          if (data.images && Array.isArray(data.images) && data.images.length > 0) {
-            setCandidateImages(data.images);
-            setGiftImageUrl(data.images[0]);
-            setSelectedImageIndex(0);
-          } else if (data.image_url) {
-            setCandidateImages([data.image_url]);
-            setGiftImageUrl(data.image_url);
-            setSelectedImageIndex(0);
-          } else {
-            setCandidateImages([]);
-            setGiftImageUrl('');
-          }
+          
+          // Calcular tempo restante para garantir pelo menos 1.5 segundos de loading
+          const elapsed = Date.now() - startTime;
+          const remainingDelay = Math.max(0, 1500 - elapsed);
+          
+          setTimeout(() => {
+            if (data.url) {
+              cleanVal = data.url;
+              const finalLinks = [...links];
+              finalLinks[index] = cleanVal;
+              setLinks(finalLinks);
+            }
+            if (data.name) {
+              setGiftName(data.name);
+            }
+            if (data.images && Array.isArray(data.images) && data.images.length > 0) {
+              setCandidateImages(data.images);
+              setGiftImageUrl(data.images[0]);
+              setSelectedImageIndex(0);
+            } else if (data.image_url) {
+              setCandidateImages([data.image_url]);
+              setGiftImageUrl(data.image_url);
+              setSelectedImageIndex(0);
+            } else {
+              setCandidateImages([]);
+              setGiftImageUrl('');
+            }
 
-          const isSearch = (/lista\.mercadolivre\.com\.br/i.test(cleanVal) || 
-                            /\/search/i.test(cleanVal) || 
-                            /&search/i.test(cleanVal) || 
-                            /\/s\?/i.test(cleanVal) || 
-                            /busca/i.test(cleanVal)) && !/\/p\/MLB[0-9]+/i.test(cleanVal);
-          setGiftIsSearchLink(isSearch);
+            const isSearch = (/lista\.mercadolivre\.com\.br/i.test(cleanVal) || 
+                              /\/search/i.test(cleanVal) || 
+                              /&search/i.test(cleanVal) || 
+                              /\/s\?/i.test(cleanVal) || 
+                              /busca/i.test(cleanVal)) && !/\/p\/MLB[0-9]+/i.test(cleanVal);
+            setGiftIsSearchLink(isSearch);
+            setScrapingIndex(null);
+          }, remainingDelay);
+        } else {
+          setScrapingIndex(null);
         }
       } catch (err) {
         console.error('Erro ao ler produto:', err);
-      } finally {
         setScrapingIndex(null);
       }
     }

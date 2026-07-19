@@ -252,9 +252,37 @@ export async function GET(request: Request) {
         }
       } catch(e){}
 
+      // Buscar imagens de fallback na Amazon usando o título do produto extraído
+      const fallbackImages: string[] = [];
+      if (extractedTitle !== 'Produto sem Nome') {
+        try {
+          const amzSearchUrl = `https://www.amazon.com.br/s?k=${encodeURIComponent(extractedTitle)}`;
+          const amzRes = await fetch(amzSearchUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+              'Accept-Language': 'pt-BR,pt;q=0.9',
+            },
+            next: { revalidate: 3600 }
+          });
+          if (amzRes.ok) {
+            const amzHtml = await amzRes.text();
+            const amzMatches = amzHtml.matchAll(/<img[^>]*class=["']s-image["'][^>]*src=["']([^"']+)["']/gi);
+            for (const match of amzMatches) {
+              if (fallbackImages.length >= 3) break;
+              const imgUrl = match[1];
+              if (!fallbackImages.includes(imgUrl)) fallbackImages.push(imgUrl);
+            }
+          }
+        } catch (e) {
+          console.warn('Erro na busca de imagem fallback:', e);
+        }
+      }
+
       return NextResponse.json({
         name: extractedTitle,
-        image_url: null,
+        image_url: fallbackImages[0] || null,
+        images: fallbackImages,
         is_search_link: isSearchLink,
         platform,
       });
@@ -354,9 +382,35 @@ export async function GET(request: Request) {
     }
 
     // Converter imagens Mercado Livre para alta resolução
-    const finalImages = imageUrls.map(url => 
+    let finalImages = imageUrls.map(url => 
       platform === 'mercadolivre' ? url.replace(/-(?:I|E)\.(jpg|webp|png)/, '-O.$1') : url
     );
+
+    // Se a requisição funcionou, mas não retornou nenhuma imagem (bloqueio parcial de CDN ou lazyload)
+    if (finalImages.length === 0 && title) {
+      try {
+        const amzSearchUrl = `https://www.amazon.com.br/s?k=${encodeURIComponent(title)}`;
+        const amzRes = await fetch(amzSearchUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'pt-BR,pt;q=0.9',
+          },
+          next: { revalidate: 3600 }
+        });
+        if (amzRes.ok) {
+          const amzHtml = await amzRes.text();
+          const amzMatches = amzHtml.matchAll(/<img[^>]*class=["']s-image["'][^>]*src=["']([^"']+)["']/gi);
+          for (const match of amzMatches) {
+            if (finalImages.length >= 3) break;
+            const imgUrl = match[1];
+            if (!finalImages.includes(imgUrl)) finalImages.push(imgUrl);
+          }
+        }
+      } catch (e) {
+        console.warn('Erro ao obter imagem de fallback no scraper principal:', e);
+      }
+    }
 
     return NextResponse.json({
       name: title || 'Produto sem Nome',

@@ -361,7 +361,7 @@ export default function EditGiftPage({ params }: PageProps) {
               </div>
             ) : candidateImages.length > 0 && (
               <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label>Selecione a imagem que mais representa ou faz sentido</label>
+                <label>Selecione sua imagem preferida</label>
                 <div style={{ display: 'flex', gap: '0.75rem', marginTop: '4px', overflowX: 'auto', padding: '4px 0' }}>
                   {candidateImages.slice(0, 3).map((img, idx) => (
                     <div 

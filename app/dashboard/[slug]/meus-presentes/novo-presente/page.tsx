@@ -91,6 +91,12 @@ export default function NewGiftPage({ params }: PageProps) {
         const res = await fetch(`/api/scrape?url=${encodeURIComponent(cleanVal)}`);
         if (res.ok) {
           const data = await res.json();
+          if (data.url) {
+            cleanVal = data.url;
+            const finalLinks = [...links];
+            finalLinks[index] = cleanVal;
+            setLinks(finalLinks);
+          }
           if (data.name) {
             setGiftName(data.name);
           }

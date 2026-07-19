@@ -25,16 +25,52 @@ export async function GET(request: Request) {
         const res = await fetch(cleanedUrl, {
           method: 'GET',
           headers: {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1',
+            'User-Agent': 'WhatsApp/2.24.4.8 A',
           }
         });
         if (res.ok) {
           const html = await res.text();
-          // Procurar pela variável CONFIG.httpUrl no código script
+          
+          // Procurar og:title e og:image direto do encurtador (como o WhatsApp faz)
+          const titleRegex = /<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i;
+          const imageRegex = /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i;
+          
+          const titleMatch = html.match(titleRegex);
+          const imageMatch = html.match(imageRegex);
+          
+          // Procurar pela variável CONFIG.httpUrl no código script para obter o link limpo expandido
           const configMatch = html.match(/httpUrl\s*:\s*["']([^"']+)["']/i);
+          let expandedUrl = cleanedUrl;
           if (configMatch && configMatch[1]) {
-            // Decodificar barras escapadas (\/)
-            cleanedUrl = configMatch[1].replace(/\\/g, '');
+            expandedUrl = configMatch[1].replace(/\\/g, '');
+          }
+
+          if (titleMatch && titleMatch[1]) {
+            let extractedTitle = titleMatch[1]
+              .replace(/&amp;/g, '&')
+              .replace(/&quot;/g, '"')
+              .replace(/&#39;/g, "'")
+              .replace(/\s*[-\|]\s*(Shopee).*$/i, '')
+              .trim();
+
+            const imageUrls: string[] = [];
+            if (imageMatch && imageMatch[1]) {
+              imageUrls.push(imageMatch[1]);
+            }
+
+            // O WhatsApp nos dá o og:title e og:image originais da shopee prontinhos!
+            return NextResponse.json({
+              name: extractedTitle,
+              image_url: imageUrls[0] || null,
+              images: imageUrls,
+              is_search_link: false,
+              platform: 'shopee',
+              url: expandedUrl // Retorna a URL original expandida para salvar no banco
+            });
+          }
+
+          if (configMatch && configMatch[1]) {
+            cleanedUrl = expandedUrl;
           }
         }
       } catch (err) {

@@ -26,6 +26,8 @@ export default function EditGiftPage({ params }: PageProps) {
   const [giftPrice, setGiftPrice] = useState('');
   const [giftImageUrl, setGiftImageUrl] = useState('');
   const [giftIsSearchLink, setGiftIsSearchLink] = useState(false);
+  const [quantityEnabled, setQuantityEnabled] = useState(false);
+  const [giftQuantity, setGiftQuantity] = useState<number | string>(1);
   
   // Scraper Options / Loading States
   const [scrapingIndex, setScrapingIndex] = useState<number | null>(null);
@@ -73,6 +75,10 @@ export default function EditGiftPage({ params }: PageProps) {
       setGiftPrice(giftData.price ? giftData.price.toString() : '');
       setGiftImageUrl(giftData.image_url || '');
       setGiftIsSearchLink(giftData.is_search_link || false);
+      if (giftData.quantity != null) {
+        setQuantityEnabled(true);
+        setGiftQuantity(giftData.quantity);
+      }
 
       const initialLinks = [giftData.link_ml, giftData.link_shopee, giftData.link_amazon].filter(Boolean) as string[];
       setLinks(initialLinks.length > 0 ? initialLinks : ['']);
@@ -131,7 +137,7 @@ export default function EditGiftPage({ params }: PageProps) {
               finalLinks[index] = cleanVal;
               setLinks(finalLinks);
             }
-            if (data.name) {
+            if (data.name && data.name !== 'Produto sem Nome') {
               setGiftName(data.name);
             }
             if (data.images && Array.isArray(data.images) && data.images.length > 0) {
@@ -230,6 +236,7 @@ export default function EditGiftPage({ params }: PageProps) {
         price: giftPrice ? parseFloat(giftPrice) : null,
         image_url: giftImageUrl || null,
         is_search_link: giftIsSearchLink,
+        quantity: quantityEnabled ? (Math.max(1, parseInt(String(giftQuantity)) || 1)) : null,
       };
 
       const { error } = await supabase
@@ -437,8 +444,53 @@ export default function EditGiftPage({ params }: PageProps) {
               />
             </div>
 
+            {/* TOGGLE QUANTIDADE */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: quantityEnabled ? '0' : '0.5rem' }}>
+              <div
+                onClick={() => setQuantityEnabled(v => !v)}
+                style={{
+                  width: '38px', height: '22px', borderRadius: '11px',
+                  background: quantityEnabled ? 'var(--primary)' : '#cbd5e1',
+                  cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+                  flexShrink: 0,
+                }}
+              >
+                <div style={{
+                  position: 'absolute', top: '3px',
+                  left: quantityEnabled ? '19px' : '3px',
+                  width: '16px', height: '16px', borderRadius: '50%',
+                  background: '#ffffff', transition: 'left 0.2s',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                }} />
+              </div>
+              <label onClick={() => setQuantityEnabled(v => !v)} style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', cursor: 'pointer', lineHeight: 1.3 }}>
+                Habilitar quantidade
+              </label>
+            </div>
+
+            {quantityEnabled && (
+              <div className="form-group" style={{ marginTop: '0.6rem', marginBottom: '0.5rem' }}>
+                <label htmlFor="giftQuantity" style={{ fontSize: '0.8rem' }}>
+                  Quantidade desejada <small style={{ fontWeight: 'normal', color: '#64748b' }}>(ex: 10 pacotes de fralda)</small>
+                </label>
+                <input
+                  id="giftQuantity"
+                  type="number"
+                  min={1}
+                  placeholder="Ex: 10"
+                  className="input-field"
+                  value={giftQuantity}
+                  onChange={(e) => setGiftQuantity(e.target.value)}
+                  onBlur={() => setGiftQuantity(v => {
+                    const n = parseInt(String(v));
+                    return isNaN(n) || n < 1 ? 1 : n;
+                  })}
+                />
+              </div>
+            )}
+
             {/* CHECKBOX LINK DE BUSCA MANUAL */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', marginBottom: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', marginBottom: '0.5rem', marginTop: '0.25rem' }}>
               <input
                 type="checkbox"
                 id="isSearchLink"

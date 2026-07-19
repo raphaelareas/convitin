@@ -59,6 +59,15 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
   const [lastName, setLastName] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [reserveLoading, setReserveLoading] = useState(false);
+  const [reserveQty, setReserveQty] = useState(1);
+
+  // Minhas reservas (localStorage)
+  const [myReservations, setMyReservations] = useState<Record<string, { name: string; qty: number; reservedAt: string }>>({});
+
+  // Modal de cancelamento
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelTarget, setCancelTarget] = useState<any>(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   // Estados para seleção de loja e redirecionamento
   const [selectedStore, setSelectedStore] = useState<'ml' | 'shopee' | 'amazon' | null>(null);
@@ -84,6 +93,19 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  // Carregar minhas reservas do localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(`convitin_reservas_${list.id}`);
+      if (stored) setMyReservations(JSON.parse(stored));
+    } catch {}
+  }, [list.id]);
+
+  const saveMyReservations = (updated: Record<string, { name: string; qty: number; reservedAt: string }>) => {
+    setMyReservations(updated);
+    localStorage.setItem(`convitin_reservas_${list.id}`, JSON.stringify(updated));
+  };
 
   // Escutar atualizações do banco em tempo real via Supabase Realtime
   useEffect(() => {
@@ -160,6 +182,7 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
     setSelectedGift(gift);
     setFirstName('');
     setLastName('');
+    setReserveQty(1);
     
     // Auto-seleção se houver apenas uma loja disponível
     const stores = [];
@@ -180,29 +203,62 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
     e.preventDefault();
     setReserveLoading(true);
     try {
-      // Validar se o presente ainda está disponível
+      const hasQuantity = selectedGift.quantity != null;
+
+      // Validar status atual
       const { data: currentGift } = await supabase
         .from('gifts')
-        .select('status')
+        .select('status, quantity, quantity_reserved')
         .eq('id', selectedGift.id)
         .single();
 
-      if (currentGift?.status === 'reservado') {
+      if (currentGift?.status === 'reservado' && !hasQuantity) {
         throw new Error('Ops! Alguém acabou de reservar este presente primeiro.');
       }
 
       const fullName = `${firstName.trim()} ${lastName.trim()}`;
 
-      const { error } = await supabase
-        .from('gifts')
-        .update({
-          status: 'reservado',
-          reserved_by: fullName,
-          reserved_at: new Date().toISOString()
-        })
-        .eq('id', selectedGift.id);
+      if (hasQuantity) {
+        // Modo quantidade: incrementar quantity_reserved
+        const currentReserved = currentGift?.quantity_reserved ?? 0;
+        const maxQty = currentGift?.quantity ?? selectedGift.quantity;
+        const remaining = maxQty - currentReserved;
 
-      if (error) throw error;
+        if (reserveQty > remaining) {
+          throw new Error(`Só restam ${remaining} unidade(s) disponíveis.`);
+        }
+
+        const newReserved = currentReserved + reserveQty;
+        const nowFull = newReserved >= maxQty;
+
+        const { error } = await supabase
+          .from('gifts')
+          .update({
+            quantity_reserved: newReserved,
+            status: nowFull ? 'reservado' : 'disponivel',
+            reserved_by: nowFull ? fullName : null,
+            reserved_at: nowFull ? new Date().toISOString() : null,
+          })
+          .eq('id', selectedGift.id);
+
+        if (error) throw error;
+      } else {
+        // Modo reserva única clássica
+        const { error } = await supabase
+          .from('gifts')
+          .update({
+            status: 'reservado',
+            reserved_by: fullName,
+            reserved_at: new Date().toISOString(),
+          })
+          .eq('id', selectedGift.id);
+
+        if (error) throw error;
+      }
+
+      // Salvar reserva no localStorage
+      const updated = { ...myReservations, [selectedGift.id]: { name: fullName, qty: hasQuantity ? reserveQty : 1, reservedAt: new Date().toISOString() } };
+      saveMyReservations(updated);
 
       // Definir URL e nome do marketplace para redirecionamento
       let storeUrl = '';
@@ -240,6 +296,64 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
       alert(err.message || 'Erro ao realizar reserva.');
     } finally {
       setReserveLoading(false);
+    }
+  };
+
+  const handleOpenCancel = (gift: any) => {
+    setCancelTarget(gift);
+    setShowCancelModal(true);
+  };
+
+  const handleConfirmCancel = async () => {
+    if (!cancelTarget) return;
+    setCancelLoading(true);
+    try {
+      const myEntry = myReservations[cancelTarget.id];
+      const qtyToRemove = myEntry?.qty ?? 1;
+      const hasQuantity = cancelTarget.quantity != null;
+
+      const { data: currentGift } = await supabase
+        .from('gifts')
+        .select('quantity_reserved, status')
+        .eq('id', cancelTarget.id)
+        .single();
+
+      if (hasQuantity) {
+        const newReserved = Math.max(0, (currentGift?.quantity_reserved ?? 0) - qtyToRemove);
+        const { error } = await supabase
+          .from('gifts')
+          .update({
+            quantity_reserved: newReserved,
+            status: 'disponivel',
+            reserved_by: null,
+            reserved_at: null,
+          })
+          .eq('id', cancelTarget.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('gifts')
+          .update({
+            status: 'disponivel',
+            reserved_by: null,
+            reserved_at: null,
+          })
+          .eq('id', cancelTarget.id);
+        if (error) throw error;
+      }
+
+      // Remover do localStorage
+      const updated = { ...myReservations };
+      delete updated[cancelTarget.id];
+      saveMyReservations(updated);
+
+      setShowCancelModal(false);
+      setCancelTarget(null);
+      refreshGifts();
+    } catch (err: any) {
+      alert(err.message || 'Erro ao cancelar reserva.');
+    } finally {
+      setCancelLoading(false);
     }
   };
 
@@ -630,20 +744,26 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
               })
               .map((gift) => {
                 const isReserved = gift.status === 'reservado';
+                const hasQuantity = gift.quantity != null;
+                const qtyReserved = gift.quantity_reserved ?? 0;
+                const qtyTotal = gift.quantity ?? 0;
+                const qtyRemaining = hasQuantity ? Math.max(0, qtyTotal - qtyReserved) : 0;
+                const isFullyReserved = hasQuantity ? qtyRemaining <= 0 : isReserved;
+                const isMyReservation = !!myReservations[gift.id];
                 return (
                   <div 
                     key={gift.id} 
                     className="glass-card" 
                     style={{
                       ...styles.giftCard,
-                      background: isReserved ? '#fafafa' : 'var(--card-bg)',
-                      border: isReserved ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid var(--card-border)',
+                      background: isFullyReserved ? '#fafafa' : 'var(--card-bg)',
+                      border: isFullyReserved ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid var(--card-border)',
                       position: 'relative',
                       overflow: 'hidden',
                     }}
                   >
                     {/* Ribbon de "Reservado" no canto superior direito */}
-                    {isReserved && (
+                    {isFullyReserved && (
                       <div className="gift-ribbon" style={{
                         position: 'absolute',
                         top: 0,
@@ -668,7 +788,7 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                     {/* Foto */}
                     <div className="gift-img" style={{
                       ...styles.imageContainer,
-                      opacity: isReserved ? 0.6 : 1,
+                      opacity: isFullyReserved ? 0.6 : 1,
                     }}>
                       {gift.image_url ? (
                         <img 
@@ -676,7 +796,7 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                           alt={gift.name} 
                           style={{
                             ...styles.image,
-                            filter: isReserved ? 'blur(3px)' : 'none',
+                            filter: isFullyReserved ? 'blur(3px)' : 'none',
                           }} 
                         />
                       ) : (
@@ -732,18 +852,43 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
 
                       <h3 style={{
                         ...styles.giftTitle,
-                        opacity: isReserved ? 0.6 : 1,
+                        opacity: isFullyReserved ? 0.6 : 1,
                       }}>{gift.name}</h3>
                       {gift.price ? (
                         <p style={{
                           ...styles.giftPrice,
-                          opacity: isReserved ? 0.6 : 1,
+                          opacity: isFullyReserved ? 0.6 : 1,
                         }}>
                           {gift.is_search_link ? 'A partir de ' : ''}R$ {gift.price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                       ) : null}
 
-                      {isReserved ? (
+                      {/* Badge de progresso de quantidade */}
+                      {hasQuantity && (
+                        <div style={{ marginBottom: '0.5rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                            <span style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-muted)' }}>
+                              {isFullyReserved ? 'Totalmente reservado' : `${qtyReserved} de ${qtyTotal} reservado${qtyReserved !== 1 ? 's' : ''}`}
+                            </span>
+                            {!isFullyReserved && (
+                              <span style={{ fontSize: '0.7rem', fontWeight: '700', color: 'var(--primary)' }}>
+                                {qtyRemaining} restante{qtyRemaining !== 1 ? 's' : ''}
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ height: '5px', borderRadius: '3px', background: 'rgba(100,116,139,0.15)', overflow: 'hidden' }}>
+                            <div style={{
+                              height: '100%',
+                              width: `${Math.min(100, (qtyReserved / qtyTotal) * 100)}%`,
+                              background: isFullyReserved ? 'var(--success)' : 'var(--primary)',
+                              borderRadius: '3px',
+                              transition: 'width 0.4s ease',
+                            }} />
+                          </div>
+                        </div>
+                      )}
+
+                      {isFullyReserved ? (
                         <div style={{
                           ...styles.reservedInfo,
                           justifyContent: 'center',
@@ -752,6 +897,21 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                           <CheckCircle2 size={14} color="var(--success)" />
                           <span style={{ color: 'var(--success)', fontWeight: '600' }}>Já reservado 🎁</span>
                         </div>
+                      ) : isMyReservation ? (
+                        <button
+                          onClick={() => handleOpenCancel(gift)}
+                          style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                            width: '100%', padding: '0.55rem 1rem',
+                            borderRadius: '10px', border: '1.5px solid rgba(16, 185, 129, 0.4)',
+                            background: 'rgba(16, 185, 129, 0.06)', cursor: 'pointer',
+                            fontSize: '0.82rem', fontWeight: '700', color: 'var(--success)',
+                            transition: 'all 0.18s ease',
+                          }}
+                        >
+                          <CheckCircle2 size={14} color="var(--success)" />
+                          Reservado por você
+                        </button>
                       ) : (
                         <button 
                           onClick={() => handleOpenReserve(gift)} 
@@ -759,7 +919,7 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                           style={styles.reserveBtn}
                         >
                           <Gift size={14} />
-                          Selecionar presente
+                          {hasQuantity ? `Reservar (${qtyRemaining} disp.)` : 'Selecionar presente'}
                         </button>
                       )}
                     </div>
@@ -848,6 +1008,36 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
               <p style={{ fontSize: '0.73rem', color: 'var(--text-muted)', margin: '0.4rem 0 0', lineHeight: 1.4 }}>
                 💡 Preencha seu nome e selecione a loja para confirmar sua reserva.
               </p>
+
+              {/* Seletor de Quantidade */}
+              {selectedGift?.quantity != null && (() => {
+                const maxRemaining = Math.max(0, selectedGift.quantity - (selectedGift.quantity_reserved ?? 0));
+                return (
+                  <div style={{ marginTop: '0.85rem', padding: '0.75rem 1rem', borderRadius: '10px', background: 'rgba(var(--primary-rgb), 0.04)', border: '1.5px solid rgba(var(--primary-rgb), 0.12)' }}>
+                    <p style={{ fontSize: '0.73rem', fontWeight: '600', color: 'var(--text-muted)', margin: '0 0 0.5rem', lineHeight: 1.4 }}>
+                      Este presente tem <strong>{selectedGift.quantity}</strong> unidade(s).
+                      Restam <strong style={{ color: 'var(--primary)' }}>{maxRemaining}</strong> disponível(is).
+                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <label style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Quero reservar:</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <button type="button" onClick={() => setReserveQty(q => Math.max(1, q - 1))} style={{
+                          width: '28px', height: '28px', borderRadius: '6px', border: '1.5px solid var(--card-border)',
+                          background: 'var(--card-bg)', cursor: 'pointer', fontWeight: '700', fontSize: '1rem',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>-</button>
+                        <span style={{ minWidth: '28px', textAlign: 'center', fontWeight: '700', fontSize: '1rem' }}>{reserveQty}</span>
+                        <button type="button" onClick={() => setReserveQty(q => Math.min(maxRemaining, q + 1))} style={{
+                          width: '28px', height: '28px', borderRadius: '6px', border: '1.5px solid var(--card-border)',
+                          background: 'var(--card-bg)', cursor: 'pointer', fontWeight: '700', fontSize: '1rem',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>+</button>
+                      </div>
+                      <span style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>de {maxRemaining}</span>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Seleção de Loja */}
               <div style={{ marginTop: '1rem' }}>
@@ -1066,6 +1256,51 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                 style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.8rem', cursor: 'pointer', padding: '0.25rem', marginTop: '0.25rem' }}
               >
                 Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE CANCELAMENTO DE RESERVA */}
+      {showCancelModal && (
+        <div style={styles.modalOverlay}>
+          <div className="glass-card animate-fade-in" style={{ ...styles.modalCard, maxWidth: '400px', textAlign: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+              <div style={{
+                width: '56px', height: '56px', borderRadius: '50%',
+                background: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 8px 24px rgba(245,158,11,0.25)',
+              }}>
+                <Gift size={24} color="#fff" />
+              </div>
+            </div>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: '800', marginBottom: '0.5rem', color: 'var(--text-main)' }}>
+              Cancelar reserva?
+            </h3>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+              Tem certeza que deseja cancelar sua reserva de <strong style={{ color: 'var(--text-main)' }}>{cancelTarget?.name}</strong>?
+              {cancelTarget?.quantity != null && myReservations[cancelTarget?.id] && (
+                <span> ({myReservations[cancelTarget.id].qty} unidade(s))</span>
+              )}
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                onClick={() => { setShowCancelModal(false); setCancelTarget(null); }}
+                disabled={cancelLoading}
+                className="btn btn-secondary"
+                style={{ flex: 1 }}
+              >
+                Manter reserva
+              </button>
+              <button
+                onClick={handleConfirmCancel}
+                disabled={cancelLoading}
+                className="btn btn-primary"
+                style={{ flex: 1, background: '#ef4444', borderColor: '#ef4444' }}
+              >
+                {cancelLoading ? <Loader2 size={16} className="animate-spin" /> : 'Sim, cancelar'}
               </button>
             </div>
           </div>

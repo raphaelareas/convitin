@@ -305,7 +305,7 @@ export async function GET(request: Request) {
     });
 
     if (!response.ok) {
-      let extractedTitle = 'Produto sem Nome';
+      let extractedTitle = '';
       try {
         const urlObj = new URL(cleanedUrl);
         const paths = urlObj.pathname.split('/').filter(Boolean);
@@ -343,7 +343,7 @@ export async function GET(request: Request) {
       } catch(e){}
 
       const fallbackImages: string[] = [];
-      if (extractedTitle !== 'Produto sem Nome') {
+      if (extractedTitle) {
         try {
           const amzSearchUrl = `https://www.amazon.com.br/s?k=${encodeURIComponent(extractedTitle)}`;
           const amzRes = await fetch(amzSearchUrl, {
@@ -497,7 +497,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-      name: title || 'Produto sem Nome',
+      name: title || null,
       image_url: finalImages[0] || defaultSvg,
       images: finalImages,
       is_search_link: false,

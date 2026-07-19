@@ -307,8 +307,16 @@ export async function GET(request: Request) {
           titlePart = titlePart.split('.')[0];
         }
         if (titlePart.includes('-')) {
-          extractedTitle = decodeURIComponent(titlePart)
-            .replace(/-/g, ' ')
+          // Remover partes finais que parecem códigos de referência de estoque/SKU (ex: FBA-833Z-028, etc.)
+          const segments = titlePart.split('-');
+          const filteredSegments = segments.filter(seg => {
+            // Se for muito curto, conter números misturados (like 833Z, 028) ou capitalização típica de SKU
+            if (/^[A-Z0-9]{3,}$/.test(seg) && /[0-9]/.test(seg) && /[A-Z]/.test(seg)) return false;
+            if (/^[0-9]{2,}$/.test(seg)) return false; // Apenas números
+            return true;
+          });
+          
+          extractedTitle = decodeURIComponent(filteredSegments.join(' '))
             .replace(/_/g, ' ')
             .trim();
           // Capitalizar palavras

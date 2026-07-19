@@ -139,14 +139,18 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
   const getStoreNameFromUrl = (url: string) => {
     if (!url) return '';
     try {
-      const hostname = new URL(url).hostname.replace('www.', '');
-      const parts = hostname.split('.');
+      const hostname = new URL(url).hostname.toLowerCase();
+      if (hostname.includes('shp.ee') || hostname.includes('shopee')) return 'Shopee';
+      if (hostname.includes('mercadolivre') || hostname.includes('mercadolibre')) return 'Mercado Livre';
+      if (hostname.includes('amazon')) return 'Amazon';
+      
+      const cleanHost = hostname.replace('www.', '');
+      const parts = cleanHost.split('.');
       let name = parts[0];
-      if (name === 'mercadolivre' || name === 'mercadolibre') return 'Mercado Livre';
       return name.charAt(0).toUpperCase() + name.slice(1);
     } catch (e) {
+      if (/shp\.ee|shopee/i.test(url)) return 'Shopee';
       if (/mercadolivre/i.test(url)) return 'Mercado Livre';
-      if (/shopee/i.test(url)) return 'Shopee';
       if (/amazon/i.test(url)) return 'Amazon';
       return 'Loja';
     }

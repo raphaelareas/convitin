@@ -70,8 +70,9 @@ export async function GET(request: Request) {
     // =========================================================================
     if (platform === 'shopee' && !isSearchLink) {
       // Extrair título do produto diretamente da URL da Shopee (que é muito descritiva e limpa)
-      const pathPart = cleanedUrl.split('/').pop() || '';
-      // A URL da Shopee pode ser: /nome-do-produto-i.123.456 ou /product/123/456 ou /nome-do-produto (sem query/id)
+      const urlWithoutQuery = targetUrl.split('?')[0].split('#')[0];
+      const pathPart = urlWithoutQuery.split('/').pop() || '';
+      // A URL da Shopee pode ser: /nome-do-produto-i.123.456 ou /product/123/456 ou /nome-do-produto
       let titlePart = pathPart;
       if (pathPart.includes('-i.')) {
         titlePart = pathPart.split('-i.')[0];
@@ -82,20 +83,37 @@ export async function GET(request: Request) {
  
       // Sanitizar título se veio apenas IDs numéricos ou lixo
       if (!extractedTitle || /^\d+$/.test(extractedTitle) || extractedTitle.length < 3) {
-        // Tenta pegar a penúltima parte da URL
-        const parts = cleanedUrl.split('/');
+        const parts = urlWithoutQuery.split('/');
         const penUlt = parts[parts.length - 2] || '';
         if (penUlt && !/^(product|item|shop|category|s|i|c)$/i.test(penUlt)) {
           extractedTitle = decodeURIComponent(penUlt).replace(/-/g, ' ').replace(/_/g, ' ').trim();
         } else {
-          extractedTitle = 'Produto da Shopee';
+          // Tentar adivinhar extraindo de parâmetros da URL caso existam
+          const matchQueryParam = targetUrl.match(/utm_content=([^&]+)/) || targetUrl.match(/keyword=([^&]+)/);
+          if (matchQueryParam && matchQueryParam[1]) {
+            extractedTitle = decodeURIComponent(matchQueryParam[1]).replace(/-/g, ' ').replace(/_/g, ' ').trim();
+          } else {
+            extractedTitle = 'Produto da Shopee';
+          }
         }
       }
- 
-      let imageUrl: string | null = null;
 
+      // Se for apenas número ou IDs e não pudermos adivinhar, damos fallback genérico
+      if (/^\d+$/.test(extractedTitle)) {
+        extractedTitle = 'Produto da Shopee';
+      }
+
+      // Capitalizar palavras
       if (extractedTitle !== 'Produto da Shopee') {
-        // 1. Tenta buscar primeiro na Amazon (onde produtos de marca/bebê possuem alta correspondência e fotos de fundo branco)
+        extractedTitle = extractedTitle
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+      }
+
+      // Buscar imagens de fallback
+      const fallbackImages: string[] = [];
+      if (extractedTitle !== 'Produto da Shopee') {
         try {
           const amzSearchUrl = `https://www.amazon.com.br/s?k=${encodeURIComponent(extractedTitle)}`;
           const amzRes = await fetch(amzSearchUrl, {
@@ -108,46 +126,22 @@ export async function GET(request: Request) {
           });
           if (amzRes.ok) {
             const amzHtml = await amzRes.text();
-            const amzMatch = amzHtml.match(/<img[^>]*class=["']s-image["'][^>]*src=["']([^"']+)["']/i) ||
-                             amzHtml.match(/<img[^>]*src=["']([^"']+)["'][^>]*class=["']s-image["']/i);
-            if (amzMatch && amzMatch[1]) {
-              imageUrl = amzMatch[1];
+            const amzMatches = amzHtml.matchAll(/<img[^>]*class=["']s-image["'][^>]*src=["']([^"']+)["']/gi);
+            for (const match of amzMatches) {
+              if (fallbackImages.length >= 3) break;
+              const imgUrl = match[1];
+              if (!fallbackImages.includes(imgUrl)) fallbackImages.push(imgUrl);
             }
           }
         } catch (e) {
-          console.warn('Erro ao pescar imagem da Shopee na Amazon:', e);
-        }
-
-        // 2. Se falhar na Amazon, faz o fallback no Mercado Livre
-        if (!imageUrl) {
-          try {
-            const mlSearchUrl = `https://lista.mercadolivre.com.br/${encodeURIComponent(extractedTitle)}`;
-            const searchRes = await fetch(mlSearchUrl, {
-              headers: {
-                'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'pt-BR,pt;q=0.9',
-              },
-              next: { revalidate: 3600 }
-            });
-            if (searchRes.ok) {
-              const searchHtml = await searchRes.text();
-              const mlSearchImg = searchHtml.match(/<img[^>]*class=["'](?:ui-search-result-image__element|poly-component__picture)[^"']*["'][^>]*src=["']([^"']+)["']/i) ||
-                                  searchHtml.match(/<img[^>]*src=["']([^"']+)["'][^>]*class=["'](?:ui-search-result-image__element|poly-component__picture)[^"']*["']/i) ||
-                                  searchHtml.match(/data-src=["']([^"']+)["']/i);
-              if (mlSearchImg && mlSearchImg[1]) {
-                imageUrl = mlSearchImg[1].replace(/-(?:I|E)\.(jpg|webp|png)/, '-O.$1');
-              }
-            }
-          } catch (e) {
-            console.warn('Erro ao pescar imagem da Shopee no Mercado Livre:', e);
-          }
+          console.warn('Erro ao pescar imagens da Shopee:', e);
         }
       }
 
       return NextResponse.json({
         name: extractedTitle,
-        image_url: imageUrl,
+        image_url: fallbackImages[0] || null,
+        images: fallbackImages,
         is_search_link: false,
         platform,
       });

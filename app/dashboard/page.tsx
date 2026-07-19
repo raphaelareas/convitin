@@ -835,7 +835,7 @@ export default function Dashboard() {
                       {/* Imagem de Capa */}
                       <div className="form-group" style={{ marginBottom: 0 }}>
 
-                        <label>Imagem de Capa (Opções combinando com o tema selecionado)</label>
+                        <label>Imagem de Capa | 1200x400px</label>
                         <div style={{
                           display: 'grid',
                           gridTemplateColumns: 'repeat(3, 1fr)',
@@ -861,8 +861,22 @@ export default function Dashboard() {
                           ))}
                         </div>
 
-                        {/* Upload Customizado */}
-                        <div style={{ marginTop: '0.85rem' }}>
+                        {/* Card Dropzone para Enviar Capa Personalizada */}
+                        <div style={{ 
+                          marginTop: '0.85rem',
+                          border: '1px dashed #cbd5e1',
+                          borderRadius: '12px',
+                          padding: '1.25rem 1rem',
+                          background: '#f8fafc',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.5rem',
+                          textAlign: 'center',
+                          width: '100%',
+                          boxSizing: 'border-box'
+                        }}>
                           <input 
                             type="file" 
                             ref={fileInputRef}
@@ -875,44 +889,36 @@ export default function Dashboard() {
                               }
                             }}
                           />
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                            <button
-                              type="button"
-                              onClick={() => fileInputRef.current?.click()}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.4rem',
-                                border: '1px solid var(--primary)',
-                                background: 'none',
-                                color: 'var(--primary)',
-                                padding: '0.5rem 1rem',
-                                borderRadius: '8px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                fontSize: '0.8rem',
-                                transition: 'var(--transition-smooth)'
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(var(--primary-rgb), 0.05)';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'transparent';
-                              }}
-                            >
-                              <UploadCloud size={16} />
-                              Enviar Capa Personalizada
-                            </button>
-                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                              1200x400px (3:1)
-                            </span>
+                          <div style={{ 
+                            width: '40px', 
+                            height: '40px', 
+                            borderRadius: '50%', 
+                            background: 'rgba(79, 70, 229, 0.05)', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            color: 'var(--primary)'
+                          }}>
+                            <UploadCloud size={20} />
                           </div>
-                          {customBannerFile && (
-                            <div style={{ marginTop: '0.25rem' }}>
-                              <small style={{ color: 'var(--success)', fontWeight: '600' }}>
-                                ✓ {customBannerFile.name}
-                              </small>
-                            </div>
+                          
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="btn btn-secondary"
+                            style={{ padding: '0.4rem 0.85rem', fontSize: '0.75rem', fontWeight: '700', border: '1px solid #cbd5e1' }}
+                          >
+                            Enviar Capa Personalizada
+                          </button>
+                          
+                          {customBannerFile ? (
+                            <span style={{ fontSize: '0.72rem', color: 'var(--success)', fontWeight: '700' }}>
+                              ✓ {customBannerFile.name}
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '500' }}>
+                              Formatos sugeridos: JPG, PNG (1200x400px)
+                            </span>
                           )}
                         </div>
                       </div>

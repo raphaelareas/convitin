@@ -233,19 +233,18 @@ export default function EditGiftPage({ params }: PageProps) {
       <main style={styles.main}>
         <div className="animate-fade-in" style={{ maxWidth: '700px', margin: '0 auto', width: '100%' }}>
           
-          {/* Seta de Voltar Cheia para a Rota de Meus Presentes */}
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-            <button onClick={() => router.push(`/dashboard/${slug}/meus-presentes`)} className="btn btn-secondary" style={{ padding: '0.5rem' }}>
-              <ArrowLeft size={20} />
-            </button>
+          {/* Título e Botão Voltar alinhados na primeira linha, Descrição na segunda linha */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '1.5rem', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <button onClick={() => router.push(`/dashboard/${slug}/meus-presentes`)} className="btn btn-secondary" style={{ padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <ArrowLeft size={20} />
+              </button>
+              <h2 style={{ ...styles.viewTitle, margin: 0 }}>Editar Presente</h2>
+            </div>
+            <p style={{ ...styles.viewSubtitle, margin: 0 }}>Edite as informações cadastrais do presente selecionado.</p>
           </div>
 
-          <div style={{ marginBottom: '1.5rem' }}>
-            <h2 style={styles.viewTitle}>Editar Presente</h2>
-            <p style={styles.viewSubtitle}>Edite as informações cadastrais do presente selecionado.</p>
-          </div>
-
-          <form onSubmit={saveGift} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', background: '#ffffff', padding: '2.5rem', borderRadius: '24px' }}>
+          <form onSubmit={saveGift} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', background: '#ffffff', padding: '1rem', borderRadius: '24px' }}>
             
             <div className="form-group">
               <label htmlFor="giftName">Nome do Presente</label>
@@ -356,11 +355,11 @@ export default function EditGiftPage({ params }: PageProps) {
               </div>
             )}
 
-            <div className="dashboard-form-actions" style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'flex-end' }}>
-              <button type="button" onClick={() => router.push(`/dashboard/${slug}/meus-presentes`)} className="btn btn-secondary">
+            <div className="dashboard-form-actions">
+              <button type="button" onClick={() => router.push(`/dashboard/${slug}/meus-presentes`)} className="btn btn-secondary dashboard-form-actions-cancel">
                 Cancelar
               </button>
-              <button type="submit" className="btn btn-primary" disabled={giftSaveLoading}>
+              <button type="submit" className="btn btn-primary dashboard-form-actions-save" disabled={giftSaveLoading}>
                 {giftSaveLoading ? 'Salvando...' : 'Salvar Alterações'}
               </button>
             </div>

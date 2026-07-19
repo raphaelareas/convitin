@@ -156,18 +156,14 @@ export default function ManageGiftsPage({ params }: PageProps) {
       <main style={styles.main}>
         <div className="animate-fade-in" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
           
-          {/* Menu Superior com Apenas o Botão de Voltar (Seta) */}
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-            <Link href="/dashboard" className="btn btn-secondary" style={{ padding: '0.5rem' }}>
-              <ArrowLeft size={20} />
-            </Link>
-          </div>
-
-          <div className="gifts-header-container" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem', width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-              <div>
-                <h2 style={{ ...styles.viewTitle, margin: 0 }}>Meus Presentes — {selectedList.title}</h2>
-                <p style={{ ...styles.viewSubtitle, marginTop: '2px', margin: 0 }}>Adicione, edite ou remova presentes da sua lista</p>
+          {/* Título e Botão Voltar alinhados na primeira linha, Descrição na segunda linha */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '1.5rem', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <Link href="/dashboard" className="btn btn-secondary" style={{ padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ArrowLeft size={20} />
+                </Link>
+                <h2 style={{ ...styles.viewTitle, margin: 0 }}>Meus Presentes</h2>
               </div>
               
               <div className="gifts-actions-desktop-header">
@@ -181,6 +177,10 @@ export default function ManageGiftsPage({ params }: PageProps) {
                 </button>
               </div>
             </div>
+            <p style={{ ...styles.viewSubtitle, margin: 0 }}>Adicione, edite ou remova presentes da sua lista</p>
+          </div>
+
+          <div className="gifts-header-container" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem', width: '100%' }}>
 
             <div className="gifts-share-row">
               <div className="gifts-share-input-wrapper">

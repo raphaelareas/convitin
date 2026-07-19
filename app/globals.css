@@ -229,7 +229,7 @@ input, textarea, select {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 
@@ -461,19 +461,25 @@ input, textarea, select {
 @media (max-width: 768px) {
   .dashboard-form-actions {
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0px !important;
   }
 
-  .dashboard-form-actions-cancel {
-    flex: 4 !important;
-    width: 40% !important;
+  .dashboard-form-actions-cancel,
+  .dashboard-form-actions button:first-child,
+  .dashboard-form-actions a:first-child {
+    flex: 1 !important;
+    width: 50% !important;
     padding: 0.75rem 0.4rem !important;
     white-space: nowrap !important;
   }
 
-  .dashboard-form-actions-save {
-    flex: 6 !important;
-    width: 60% !important;
+  .dashboard-form-actions-save,
+  .dashboard-form-actions button:last-child,
+  .dashboard-form-actions a:last-child {
+    flex: 1 !important;
+    width: 50% !important;
     padding: 0.75rem 0.4rem !important;
     white-space: nowrap !important;
   }

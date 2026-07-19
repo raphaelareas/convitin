@@ -200,20 +200,19 @@ export default function ListConfigurationsPage({ params }: PageProps) {
       <main style={styles.main}>
         <div className="animate-fade-in" style={{ maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
           
-          {/* Menu Superior com Apenas o Botão de Voltar (Seta) */}
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-            <Link href="/dashboard" className="btn btn-secondary" style={{ padding: '0.5rem' }}>
-              <ArrowLeft size={20} />
-            </Link>
+          {/* Título e Botão Voltar alinhados na primeira linha, Descrição na segunda linha */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '1.5rem', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <Link href="/dashboard" className="btn btn-secondary" style={{ padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <ArrowLeft size={20} />
+              </Link>
+              <h2 style={{ ...styles.viewTitle, margin: 0 }}>Configurações</h2>
+            </div>
+            <p style={{ ...styles.viewSubtitle, margin: 0 }}>Edite o título, descrição, data e aparência visual da lista.</p>
           </div>
 
-          <div style={{ marginBottom: '1.5rem' }}>
-            <h2 style={styles.viewTitle}>Configurações da Lista</h2>
-            <p style={styles.viewSubtitle}>Edite o título, descrição, data e aparência visual da lista.</p>
-          </div>
-
-          <form onSubmit={saveList} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', background: '#ffffff', padding: '2.5rem', borderRadius: '24px' }}>
-            <div className="dashboard-form-columns" style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem' }}>
+          <form onSubmit={saveList} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', background: '#ffffff', padding: '1rem', borderRadius: '24px' }}>
+            <div className="dashboard-form-columns" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
 
               {/* COLUNA 1: DADOS DO EVENTO */}
               <div style={{ flex: '1 1 280px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0px' }}>
@@ -312,7 +311,7 @@ export default function ListConfigurationsPage({ params }: PageProps) {
                 </div>
 
                 <div className="form-group">
-                  <label>Imagem de Capa</label>
+                  <label>Imagem de Capa | 1200x400px</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginTop: '0.25rem' }}>
                     {THEMES_DATA[listThemeColor || 'classic']?.banners.map((url, index) => (
                       <div 
@@ -331,7 +330,22 @@ export default function ListConfigurationsPage({ params }: PageProps) {
                     ))}
                   </div>
 
-                  <div style={{ marginTop: '0.85rem' }}>
+                  {/* Card Dropzone para Enviar Capa Personalizada */}
+                  <div style={{ 
+                    marginTop: '0.85rem',
+                    border: '1px dashed #cbd5e1',
+                    borderRadius: '12px',
+                    padding: '1.25rem 1rem',
+                    background: '#f8fafc',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    textAlign: 'center',
+                    width: '100%',
+                    boxSizing: 'border-box'
+                  }}>
                     <input 
                       type="file" 
                       ref={fileInputRef}
@@ -344,24 +358,47 @@ export default function ListConfigurationsPage({ params }: PageProps) {
                         }
                       }}
                     />
+                    <div style={{ 
+                      width: '40px', 
+                      height: '40px', 
+                      borderRadius: '50%', 
+                      background: 'rgba(79, 70, 229, 0.05)', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      color: 'var(--primary)'
+                    }}>
+                      <UploadCloud size={20} />
+                    </div>
+                    
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', border: '1px solid var(--primary)', background: 'none', color: 'var(--primary)', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', fontSize: '0.8rem' }}
+                      className="btn btn-secondary"
+                      style={{ padding: '0.4rem 0.85rem', fontSize: '0.75rem', fontWeight: '700', border: '1px solid #cbd5e1' }}
                     >
-                      <UploadCloud size={16} />
                       Enviar Capa Personalizada
                     </button>
+                    
+                    {customBannerFile ? (
+                      <span style={{ fontSize: '0.72rem', color: 'var(--success)', fontWeight: '700' }}>
+                        ✓ {customBannerFile.name}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '500' }}>
+                        Formatos sugeridos: JPG, PNG (1200x400px)
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="dashboard-form-actions" style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'flex-end' }}>
-              <button type="button" onClick={() => router.push('/dashboard')} className="btn btn-secondary">
+            <div className="dashboard-form-actions">
+              <button type="button" onClick={() => router.push('/dashboard')} className="btn btn-secondary dashboard-form-actions-cancel">
                 Cancelar
               </button>
-              <button type="submit" className="btn btn-primary" disabled={listSaveLoading}>
+              <button type="submit" className="btn btn-primary dashboard-form-actions-save" disabled={listSaveLoading}>
                 {listSaveLoading ? 'Salvando...' : 'Salvar Alterações'}
               </button>
             </div>

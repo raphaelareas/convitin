@@ -127,19 +127,20 @@ export default function ReservedGiftsPage({ params }: PageProps) {
       </header>
 
       <main style={styles.main}>
-        <div className="animate-fade-in glass-card" style={{ padding: '2.5rem', background: '#ffffff', borderRadius: '24px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+        <div className="animate-fade-in" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
           
-          {/* Menu Superior com Apenas o Botão de Voltar (Seta) */}
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-            <Link href="/dashboard" className="btn btn-secondary" style={{ padding: '0.5rem' }}>
-              <ArrowLeft size={20} />
-            </Link>
+          {/* Título e Botão Voltar alinhados na primeira linha, Descrição na segunda linha (fora do card) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '1.5rem', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <Link href="/dashboard" className="btn btn-secondary" style={{ padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <ArrowLeft size={20} />
+              </Link>
+              <h2 style={{ ...styles.viewTitle, margin: 0 }}>Reservados</h2>
+            </div>
+            <p style={{ ...styles.viewSubtitle, margin: 0 }}>Acompanhe quem reservou cada item para controle do evento.</p>
           </div>
 
-          <div style={{ marginBottom: '1.5rem' }}>
-            <h2 style={styles.viewTitle}>Produtos Reservados — {selectedList.title}</h2>
-            <p style={styles.viewSubtitle}>Acompanhe quem reservou cada item para controle do evento.</p>
-          </div>
+          <div className="glass-card" style={{ padding: '2.5rem', background: '#ffffff', borderRadius: '24px', width: '100%' }}>
 
           <div style={{ border: '1px solid #f1f5f9', borderRadius: '12px', overflow: 'hidden' }}>
             {gifts.length === 0 ? (
@@ -175,6 +176,7 @@ export default function ReservedGiftsPage({ params }: PageProps) {
               </table>
             )}
           </div>
+         </div>
         </div>
       </main>
 

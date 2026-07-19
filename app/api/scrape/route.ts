@@ -19,9 +19,10 @@ export async function GET(request: Request) {
 
     let cleanedUrl = targetUrl.trim();
 
-    // Identificar links encurtados da Shopee (shp.ee ou br.shp.ee)
-    if (/shp\.ee/i.test(cleanedUrl)) {
+    // Identificar links encurtados da Shopee (shp.ee ou br.shp.ee) ou Mercado Livre (meli.la ou meli.li)
+    if (/shp\.ee|meli\.la|meli\.li/i.test(cleanedUrl)) {
       try {
+        const isMeli = /meli\.la|meli\.li/i.test(cleanedUrl);
         const res = await fetch(cleanedUrl, {
           method: 'GET',
           headers: {
@@ -43,6 +44,9 @@ export async function GET(request: Request) {
           let expandedUrl = cleanedUrl;
           if (configMatch && configMatch[1]) {
             expandedUrl = configMatch[1].replace(/\\/g, '');
+          } else if (isMeli && res.url && res.url !== cleanedUrl) {
+            // No caso do Mercado Livre meli.la, a resposta do fetch traz o redirect final no res.url
+            expandedUrl = res.url;
           }
 
           if (titleMatch && titleMatch[1]) {
@@ -50,31 +54,36 @@ export async function GET(request: Request) {
               .replace(/&amp;/g, '&')
               .replace(/&quot;/g, '"')
               .replace(/&#39;/g, "'")
-              .replace(/\s*[-\|]\s*(Shopee).*$/i, '')
+              .replace(/\s*[-\|]\s*(Shopee|Mercado Livre).*$/i, '')
               .trim();
 
             const imageUrls: string[] = [];
             if (imageMatch && imageMatch[1]) {
-              imageUrls.push(imageMatch[1]);
+              let imgUrl = imageMatch[1];
+              if (isMeli) {
+                imgUrl = imgUrl.replace(/-(?:I|E)\.(jpg|webp|png)/, '-O.$1');
+              }
+              imageUrls.push(imgUrl);
             }
 
-            // O WhatsApp nos dá o og:title e og:image originais da shopee prontinhos!
             return NextResponse.json({
               name: extractedTitle,
               image_url: imageUrls[0] || null,
               images: imageUrls,
               is_search_link: false,
-              platform: 'shopee',
+              platform: isMeli ? 'mercadolivre' : 'shopee',
               url: expandedUrl // Retorna a URL original expandida para salvar no banco
             });
           }
 
           if (configMatch && configMatch[1]) {
             cleanedUrl = expandedUrl;
+          } else if (isMeli && res.url) {
+            cleanedUrl = res.url;
           }
         }
       } catch (err) {
-        console.warn('Erro ao ler link encurtado Shopee via regex:', err);
+        console.warn('Erro ao ler link encurtado via regex:', err);
       }
     }
 
@@ -98,7 +107,19 @@ export async function GET(request: Request) {
 
     // Se NÃO for link de busca, limpamos os parâmetros adicionais (query strings ?... e hashes #...)
     if (!isSearchLink) {
-      cleanedUrl = cleanedUrl.split('?')[0].split('#')[0];
+      if (platform === 'mercadolivre' && cleanedUrl.includes('/p/')) {
+        // Preservar a parte principal da URL incluindo o código do produto /p/MLB...
+        // O link de produto do desktop do ML pode conter parâmetros como pdp_filters=item_id%3AMLB...
+        const matchItemId = cleanedUrl.match(/item_id%3A(MLB[0-9]+)/i) || cleanedUrl.match(/item_id=(MLB[0-9]+)/i);
+        const baseUrl = cleanedUrl.split('?')[0].split('#')[0];
+        if (matchItemId && matchItemId[1] && !baseUrl.includes(matchItemId[1])) {
+          cleanedUrl = `${baseUrl}?pdp_filters=item_id%3D${matchItemId[1]}`;
+        } else {
+          cleanedUrl = baseUrl;
+        }
+      } else {
+        cleanedUrl = cleanedUrl.split('?')[0].split('#')[0];
+      }
     }
 
     // =========================================================================

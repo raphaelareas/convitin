@@ -717,21 +717,17 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '0.2rem',
-                        background: gift.is_search_link ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.08)',
-                        border: gift.is_search_link ? '1px solid rgba(245, 158, 11, 0.25)' : '1px solid rgba(16, 185, 129, 0.2)',
+                        background: 'rgba(100, 116, 139, 0.08)',
+                        border: '1px solid rgba(100, 116, 139, 0.2)',
                         padding: '0.15rem 0.45rem',
                         borderRadius: '5px',
                         fontSize: '0.6rem',
                         fontWeight: '700',
-                        color: gift.is_search_link ? '#b45309' : '#059669',
+                        color: '#475569',
                         alignSelf: 'flex-start',
                         marginBottom: '0.15rem',
                       }}>
-                        {gift.is_search_link ? (
-                          <><span>Busca facilitada</span><span>🔍</span></>
-                        ) : (
-                          <><span>Modelo Exato</span><span>✅</span></>
-                        )}
+                        <span>Imagem ilustrativa</span><span>✨</span>
                       </div>
 
                       <h3 style={{

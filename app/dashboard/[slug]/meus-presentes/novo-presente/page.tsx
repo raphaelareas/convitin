@@ -433,7 +433,7 @@ export default function NewGiftPage({ params }: PageProps) {
                   <div>
                     <h5 style={{ fontWeight: 700, fontSize: '0.9rem', margin: 0 }}>{giftName || 'Nome do Presente'}</h5>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      {giftIsSearchLink ? 'Usará a imagem da busca facilitada' : 'Foto identificada'}
+                      Imagem ilustrativa
                     </span>
                   </div>
                 </div>

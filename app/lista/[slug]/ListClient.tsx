@@ -758,8 +758,7 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                     className="glass-card" 
                     style={{
                       ...styles.giftCard,
-                      background: isFullyReserved ? '#fafafa' : 'var(--card-bg)',
-                      border: isFullyReserved ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid var(--card-border)',
+                      background: isFullyReserved ? 'rgba(255, 255, 255, 0.6)' : 'rgba(255, 255, 255, 0.9)',
                       position: 'relative',
                       overflow: 'hidden',
                     }}
@@ -894,11 +893,11 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                         <button
                           onClick={() => handleOpenCancel(gift)}
                           style={{
+                            ...styles.reserveBtn,
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-                            width: '100%', padding: '0.55rem 1rem',
-                            borderRadius: '10px', border: '1.5px solid rgba(16, 185, 129, 0.4)',
+                            border: '1.5px solid rgba(16, 185, 129, 0.4)',
                             background: 'rgba(16, 185, 129, 0.06)', cursor: 'pointer',
-                            fontSize: '0.82rem', fontWeight: '700', color: 'var(--success)',
+                            color: 'var(--success)',
                             transition: 'all 0.18s ease',
                           }}
                         >
@@ -1459,14 +1458,16 @@ const styles: Record<string, React.CSSProperties> = {
     marginTop: '2rem',
   },
   giftCard: {
-    background: 'var(--card-bg)',
+    background: 'rgba(255, 255, 255, 0.9)',
     padding: 0,
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
-    transition: 'var(--transition-smooth)',
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
     borderRadius: '14px',
+    border: 'none',
+    boxShadow: 'var(--shadow-sm)',
   },
   imageContainer: {
     width: '100%',

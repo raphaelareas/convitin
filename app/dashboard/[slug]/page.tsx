@@ -670,7 +670,11 @@ export default function ListSubRoutePage({ params }: PageProps) {
 
                           {gift.status === 'reservado' && (
                             <div style={styles.reservedOverlay}>
-                              <span style={styles.reservedBadge}>Reservado por {gift.reserved_by}</span>
+                              <span style={styles.reservedBadge}>
+                                Reservado por
+                                <br />
+                                <strong style={{ fontWeight: '800' }}>{gift.reserved_by}</strong>
+                              </span>
                             </div>
                           )}
                         </div>
@@ -682,19 +686,61 @@ export default function ListSubRoutePage({ params }: PageProps) {
                           </p>
 
                           <div style={styles.giftCardActions}>
-                            {gift.status === 'reservado' ? (
-                              <button onClick={() => releaseReservation(gift.id)} className="btn btn-secondary" style={{ flex: 1, color: 'var(--success)', border: '1px solid var(--success)', fontSize: '0.8rem' }}>
-                                Liberar Reserva
-                              </button>
-                            ) : (
-                              <button onClick={() => openGiftModal(gift)} className="btn btn-secondary" style={{ flex: 1, fontSize: '0.8rem' }}>
-                                Editar
-                              </button>
-                            )}
-                            <button onClick={() => deleteGift(gift.id)} className="btn btn-secondary" style={{ color: 'var(--accent)', padding: '0.6rem' }}>
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
+                             {gift.status === 'reservado' ? (
+                               <button 
+                                 onClick={() => releaseReservation(gift.id)} 
+                                 className="btn btn-outline" 
+                                 style={{ 
+                                   flex: 1, 
+                                   color: 'var(--success)', 
+                                   border: '1.5px solid var(--success)', 
+                                   background: 'transparent',
+                                   padding: '0.55rem 0.75rem',
+                                   borderRadius: '8px',
+                                   fontSize: '0.8rem',
+                                   fontWeight: '700',
+                                   cursor: 'pointer'
+                                 }}
+                               >
+                                 Liberar Reserva
+                               </button>
+                             ) : (
+                               <button 
+                                 onClick={() => openGiftModal(gift)} 
+                                 className="btn btn-outline" 
+                                 style={{ 
+                                   flex: 1, 
+                                   fontSize: '0.8rem',
+                                   color: 'var(--primary)',
+                                   border: '1.5px solid var(--primary)',
+                                   background: 'transparent',
+                                   padding: '0.55rem 0.75rem',
+                                   borderRadius: '8px',
+                                   fontWeight: '700',
+                                   cursor: 'pointer'
+                                 }}
+                               >
+                                 Editar
+                               </button>
+                             )}
+                             <button 
+                               onClick={() => deleteGift(gift.id)} 
+                               className="btn" 
+                               style={{ 
+                                 color: 'var(--accent)', 
+                                 background: '#ffffff', 
+                                 border: '1.5px solid var(--border)', 
+                                 borderRadius: '8px', 
+                                 padding: '0.55rem', 
+                                 cursor: 'pointer',
+                                 display: 'flex',
+                                 alignItems: 'center',
+                                 justifyContent: 'center'
+                               }}
+                             >
+                               <Trash2 size={14} />
+                             </button>
+                           </div>
                         </div>
                       </div>
                     ))}
@@ -1254,23 +1300,31 @@ const styles: Record<string, React.CSSProperties> = {
   },
   reservedOverlay: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
+    top: '16px',
+    left: '16px',
+    right: '16px',
+    bottom: '16px',
     background: 'rgba(255, 255, 255, 0.75)',
     backdropFilter: 'blur(4px)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 3,
+    padding: '16px',
+    boxSizing: 'border-box',
+    borderRadius: '12px',
   },
   reservedBadge: {
     background: 'var(--success)',
     color: '#ffffff',
-    padding: '0.35rem 0.75rem',
-    borderRadius: '30px',
-    fontSize: '0.75rem',
+    padding: '0.45rem 0.85rem',
+    borderRadius: '16px',
+    fontSize: '0.78rem',
     fontWeight: '700',
+    textAlign: 'center',
+    wordBreak: 'break-word',
+    whiteSpace: 'normal',
+    display: 'inline-block',
+    width: '100%',
   }
 };

@@ -67,11 +67,12 @@ export default function ReservedGiftsPage({ params }: PageProps) {
   }, [slug, router]);
 
   const fetchGifts = async (listId: string) => {
+    // Buscar presentes que estão reservados OU têm alguma quantidade reservada
     const { data, error } = await supabase
       .from('gifts')
       .select('*')
       .eq('list_id', listId)
-      .eq('status', 'reservado')
+      .or('status.eq.reservado,quantity_reserved.gt.0')
       .order('created_at', { ascending: false });
 
     if (!error && data) {
@@ -159,19 +160,34 @@ export default function ReservedGiftsPage({ params }: PageProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {gifts.map((gift: any) => (
-                    <tr key={gift.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '1rem', fontWeight: '600', color: '#0f172a' }}>{gift.name}</td>
-                      <td style={{ padding: '1rem', color: '#10B981', fontWeight: '700' }}>
-                        {gift.reserved_by || 'Convidado Anônimo'}
-                      </td>
-                      <td style={{ padding: '1rem', textAlign: 'center' }}>
-                        <button onClick={() => releaseReservation(gift.id)} className="btn btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', border: '1px solid #cbd5e1' }}>
-                          Liberar para Lista
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {gifts.map((gift: any) => {
+                    const hasQuantity = gift.quantity != null;
+                    const qtyReserved = gift.quantity_reserved ?? 0;
+                    const qtyTotal = gift.quantity ?? 0;
+
+                    return (
+                      <tr key={gift.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '1rem', fontWeight: '600', color: '#0f172a' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                            <span>{gift.name}</span>
+                            {hasQuantity && (
+                              <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: '700' }}>
+                                ({qtyReserved} {qtyReserved === 1 ? 'unidade reservada' : 'unidades reservadas'})
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td style={{ padding: '1rem', color: '#10B981', fontWeight: '700' }}>
+                          {gift.reserved_by || 'Comprador Anônimo'}
+                        </td>
+                        <td style={{ padding: '1rem', textAlign: 'center' }}>
+                          <button onClick={() => releaseReservation(gift.id)} className="btn btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', border: '1px solid #cbd5e1' }}>
+                            Liberar para Lista
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}

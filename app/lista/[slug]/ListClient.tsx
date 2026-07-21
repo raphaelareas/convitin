@@ -890,16 +890,7 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                         </div>
                       )}
 
-                      {isFullyReserved ? (
-                        <div style={{
-                          ...styles.reservedInfo,
-                          justifyContent: 'center',
-                          textAlign: 'center',
-                        }}>
-                          <CheckCircle2 size={14} color="var(--success)" />
-                          <span style={{ color: 'var(--success)', fontWeight: '600' }}>Já reservado 🎁</span>
-                        </div>
-                      ) : isMyReservation ? (
+                      {isMyReservation ? (
                         <button
                           onClick={() => handleOpenCancel(gift)}
                           style={{
@@ -914,6 +905,15 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
                           <CheckCircle2 size={14} color="var(--success)" />
                           Reservado por você
                         </button>
+                      ) : isFullyReserved ? (
+                        <div style={{
+                          ...styles.reservedInfo,
+                          justifyContent: 'center',
+                          textAlign: 'center',
+                        }}>
+                          <CheckCircle2 size={14} color="var(--success)" />
+                          <span style={{ color: 'var(--success)', fontWeight: '600' }}>Já reservado 🎁</span>
+                        </div>
                       ) : (
                         <button 
                           onClick={() => handleOpenReserve(gift)} 

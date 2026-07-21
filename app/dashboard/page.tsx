@@ -164,7 +164,7 @@ export default function Dashboard() {
     setLoading(true);
     const { data, error } = await supabase
       .from('lists')
-      .select('*, gifts(id, status, name, reserved_by)')
+      .select('*, gifts(id, status, name, reserved_by, quantity, quantity_reserved)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -490,23 +490,37 @@ export default function Dashboard() {
                         <div style={styles.listCardContent}>
                           {/* Tags de Presentes na horizontal, com emojis, alinhadas à esquerda e sem quebrar linha */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.35rem', flexWrap: 'nowrap', width: '100%' }}>
-                            <span style={{ background: '#f1f5f9', color: '#475569', padding: '0.15rem 0.35rem', borderRadius: '4px', fontWeight: '700', fontSize: '0.62rem', display: 'inline-flex', alignItems: 'center', gap: '0.2rem', whiteSpace: 'nowrap' }}>
-                              📦 {list.gifts ? list.gifts.length : 0} {list.gifts && list.gifts.length === 1 ? 'presente cadastrado' : 'presentes cadastrados'}
-                            </span>
-                            <span style={{ 
-                              background: list.gifts && list.gifts.filter((g: any) => g.status === 'reservado').length > 0 ? '#ECFDF5' : '#f1f5f9', 
-                              color: list.gifts && list.gifts.filter((g: any) => g.status === 'reservado').length > 0 ? '#10B981' : '#475569', 
-                              padding: '0.15rem 0.35rem', 
-                              borderRadius: '4px', 
-                              fontWeight: '700',
-                              fontSize: '0.62rem',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.2rem',
-                              whiteSpace: 'nowrap'
-                            }}>
-                              🎁 {list.gifts ? list.gifts.filter((g: any) => g.status === 'reservado').length : 0} {list.gifts && list.gifts.filter((g: any) => g.status === 'reservado').length === 1 ? 'presente reservado' : 'presentes reservados'}
-                            </span>
+                            {(() => {
+                              const totalCadastrados = list.gifts ? list.gifts.reduce((sum: number, g: any) => sum + (g.quantity != null ? g.quantity : 1), 0) : 0;
+                              const totalReservados = list.gifts ? list.gifts.reduce((sum: number, g: any) => {
+                                if (g.quantity_reserved != null && g.quantity_reserved > 0) {
+                                  return sum + g.quantity_reserved;
+                                }
+                                return sum + (g.status === 'reservado' ? 1 : 0);
+                              }, 0) : 0;
+
+                              return (
+                                <>
+                                  <span style={{ background: '#f1f5f9', color: '#475569', padding: '0.15rem 0.35rem', borderRadius: '4px', fontWeight: '700', fontSize: '0.62rem', display: 'inline-flex', alignItems: 'center', gap: '0.2rem', whiteSpace: 'nowrap' }}>
+                                    📦 {totalCadastrados} {totalCadastrados === 1 ? 'presente cadastrado' : 'presentes cadastrados'}
+                                  </span>
+                                  <span style={{ 
+                                    background: totalReservados > 0 ? '#ECFDF5' : '#f1f5f9', 
+                                    color: totalReservados > 0 ? '#10B981' : '#475569', 
+                                    padding: '0.15rem 0.35rem', 
+                                    borderRadius: '4px', 
+                                    fontWeight: '700',
+                                    fontSize: '0.62rem',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.2rem',
+                                    whiteSpace: 'nowrap'
+                                  }}>
+                                    🎁 {totalReservados} {totalReservados === 1 ? 'presente reservado' : 'presentes reservados'}
+                                  </span>
+                                </>
+                              );
+                            })()}
                           </div>
                           {/* Data do Evento e Botão Editar Lista (com ícone Edit2/lápis) */}
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', margin: '0.35rem 0 0.15rem' }}>

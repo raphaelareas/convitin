@@ -88,7 +88,7 @@ export default function GuestClient({ list }: GuestClientProps) {
     : null;
 
   return (
-    <div className={`theme-${list.theme_color}`} style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(135deg, var(--background-start) 0%, var(--background-end) 100%)', backgroundAttachment: 'fixed', fontFamily: "'Inter', sans-serif" }}>
+    <div data-theme={list.theme_color || 'base-azul-minimal'} style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--background)', fontFamily: "'Inter', sans-serif" }}>
 
       {/* Navbar */}
       <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(0,0,0,0.06)', padding: '0 1.5rem', height: '56px', display: 'flex', alignItems: 'center' }}>

@@ -383,7 +383,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   toggleContainer: {
     display: 'flex',
-    borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+    borderBottom: '1px solid var(--border)',
     marginBottom: '1.5rem',
   },
   toggleBtn: {
@@ -408,7 +408,7 @@ const styles: Record<string, React.CSSProperties> = {
   inputIcon: {
     position: 'absolute',
     left: '12px',
-    color: '#a1a1aa',
+    color: 'var(--text-disabled)',
     pointerEvents: 'none',
   },
   inputWithIcon: {
@@ -421,9 +421,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '1rem',
   },
   errorAlert: {
-    backgroundColor: 'rgba(244, 63, 94, 0.1)',
-    borderLeft: '4px solid var(--accent)',
-    color: '#9f1239',
+    backgroundColor: 'var(--danger-surface)',
+    borderLeft: '4px solid var(--danger)',
+    color: 'var(--feedback-danger-text)',
     padding: '0.75rem 1rem',
     borderRadius: '6px',
     marginBottom: '1.25rem',
@@ -431,9 +431,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: '500',
   },
   successAlert: {
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    backgroundColor: 'var(--success-surface)',
     borderLeft: '4px solid var(--success)',
-    color: '#065f46',
+    color: 'var(--feedback-success-text)',
     padding: '0.75rem 1rem',
     borderRadius: '6px',
     marginBottom: '1.25rem',

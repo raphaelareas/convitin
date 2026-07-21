@@ -8,52 +8,11 @@ import {
   Gift, ArrowLeft, Loader2, UploadCloud
 } from 'lucide-react';
 
+import ThemePicker from './ThemePicker';
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
-
-const THEMES_DATA: Record<string, { name: string; colors: string[]; banners: string[] }> = {
-  classic: {
-    name: 'Azul Minimal',
-    colors: ['#4f46e5', '#818cf8', '#f8fafc'],
-    banners: [
-      'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=1200&auto=format&fit=crop'
-    ]
-  },
-  champagne: {
-    name: 'Champagne Chic',
-    colors: ['#c5a880', '#e5d5c0', '#fdfbf7'],
-    banners: [
-      'https://images.unsplash.com/photo-1507504038482-7621fe583dc5?q=80&w=1200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=1200&auto=format&fit=crop'
-    ]
-  },
-  forest: {
-    name: 'Eucalipto Orgânico',
-    colors: ['#2d4a43', '#8fa89b', '#f4f7f5'],
-    banners: [
-      'https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=1200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1200&auto=format&fit=crop'
-    ]
-  },
-  sweet: {
-    name: 'Rosa Algodão',
-    colors: ['#db2777', '#f472b6', '#fff5f7'],
-    banners: [
-      'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?q=80&w=1200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1488900128323-24ddcef409f7?q=80&w=1200&auto=format&fit=crop'
-    ]
-  },
-  modern: {
-    name: 'Vibe Cyberpunk',
-    colors: ['#0f172a', '#3b82f6', '#1e293b'],
-    banners: [
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1200&auto=format&fit=crop'
-    ]
-  }
-};
 
 export default function ListConfigurationsPage({ params }: PageProps) {
   const router = useRouter();
@@ -67,7 +26,7 @@ export default function ListConfigurationsPage({ params }: PageProps) {
   const [listTitle, setListTitle] = useState('');
   const [listDescription, setListDescription] = useState('');
   const [listEventType, setListEventType] = useState('birthday');
-  const [listThemeColor, setListThemeColor] = useState('classic');
+  const [listThemeColor, setListThemeColor] = useState('base-azul-minimal');
   const [listBannerUrl, setListBannerUrl] = useState('');
   const [listSlug, setListSlug] = useState('');
   const [listEventDate, setListEventDate] = useState('');
@@ -102,8 +61,50 @@ export default function ListConfigurationsPage({ params }: PageProps) {
       setListTitle(listData.title);
       setListDescription(listData.description || '');
       setListEventType(listData.event_type || 'other');
-      setListThemeColor(listData.theme_color || 'classic');
-      setListBannerUrl(listData.banner_url || THEMES_DATA[listData.theme_color || 'classic']?.banners[0] || '');
+      
+      // Mapear tema antigo (classic, champagne, forest, sweet, modern) para novo token slug
+      let themeMapping: Record<string, string> = {
+        'classic': 'base-azul-minimal',
+        'champagne': 'champagne-chic',
+        'forest': 'eucalipto-organico',
+        'sweet': 'algodao-rosa',
+        'modern': 'cyberpunk'
+      };
+      const activeTheme = themeMapping[listData.theme_color] || listData.theme_color || 'base-azul-minimal';
+      setListThemeColor(activeTheme);
+
+      const defaultBanners: Record<string, string[]> = {
+        'base-azul-minimal': [
+          'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop'
+        ],
+        'algodao-rosa': [
+          'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?q=80&w=1200&auto=format&fit=crop'
+        ],
+        'champagne-chic': [
+          'https://images.unsplash.com/photo-1507504038482-7621fe583dc5?q=80&w=1200&auto=format&fit=crop'
+        ],
+        'eucalipto-organico': [
+          'https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=1200&auto=format&fit=crop'
+        ],
+        'oceano': [
+          'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop'
+        ],
+        'pessego': [
+          'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop'
+        ],
+        'terracota': [
+          'https://images.unsplash.com/photo-1507504038482-7621fe583dc5?q=80&w=1200&auto=format&fit=crop'
+        ],
+        'grafite': [
+          'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1200&auto=format&fit=crop'
+        ],
+        'cyberpunk': [
+          'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1200&auto=format&fit=crop'
+        ]
+      };
+      const fallbackBanner = defaultBanners[activeTheme]?.[0] || defaultBanners['base-azul-minimal'][0];
+      setListBannerUrl(listData.banner_url || fallbackBanner);
+
       setListSlug(listData.slug);
       setListEventDate(listData.event_date || '');
       setAllowCompanions(listData.allow_companions !== false); // default to true
@@ -287,64 +288,117 @@ export default function ListConfigurationsPage({ params }: PageProps) {
 
               {/* COLUNA 2: TEMAS */}
               <div style={{ flex: '1 1 280px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0px' }}>
-                <div className="form-group">
+                <div className="form-group" style={{ marginBottom: '1.25rem' }}>
                   <label style={{ marginBottom: '0.5rem', display: 'block' }}>Tema de Cores</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(115px, 1fr))', gap: '0.5rem', width: '100%' }}>
-                    {Object.entries(THEMES_DATA).map(([key, theme]) => {
-                      const isSelected = listThemeColor === key;
-                      return (
-                        <div
-                          key={key}
-                          onClick={() => {
-                            setListThemeColor(key);
-                            setListBannerUrl(theme.banners[0]);
-                            setCustomBannerFile(null);
-                          }}
-                          style={{
-                            background: '#ffffff',
-                            border: isSelected ? '2px solid var(--primary)' : '1px solid #e2e8f0',
-                            borderRadius: '10px',
-                            padding: '0.5rem 0.75rem',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '0.35rem',
-                            boxShadow: isSelected ? '0 4px 10px rgba(79, 70, 229, 0.12)' : 'none',
-                          }}
-                        >
-                          <span style={{ fontSize: '0.78rem', fontWeight: '700', color: isSelected ? 'var(--primary)' : '#475569' }}>
-                            {theme.name}
-                          </span>
-                          <div style={{ display: 'flex', width: '100%', maxWidth: '70px', height: '24px', borderRadius: '6px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.06)' }}>
-                            {theme.colors.map((color, idx) => (
-                              <div key={idx} style={{ flex: 1, height: '100%', background: color }} />
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <ThemePicker 
+                    value={listThemeColor} 
+                    onChange={(newTheme: string) => {
+                      setListThemeColor(newTheme);
+                      // Usar banners correspondentes aos temas
+                      const defaultBanners: Record<string, string[]> = {
+                        'base-azul-minimal': [
+                          'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=1200&auto=format&fit=crop'
+                        ],
+                        'algodao-rosa': [
+                          'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1488900128323-24ddcef409f7?q=80&w=1200&auto=format&fit=crop'
+                        ],
+                        'champagne-chic': [
+                          'https://images.unsplash.com/photo-1507504038482-7621fe583dc5?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=1200&auto=format&fit=crop'
+                        ],
+                        'eucalipto-organico': [
+                          'https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1200&auto=format&fit=crop'
+                        ],
+                        'oceano': [
+                          'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1519046904884-53103b34b206?q=80&w=1200&auto=format&fit=crop'
+                        ],
+                        'pessego': [
+                          'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?q=80&w=1200&auto=format&fit=crop'
+                        ],
+                        'terracota': [
+                          'https://images.unsplash.com/photo-1507504038482-7621fe583dc5?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=1200&auto=format&fit=crop'
+                        ],
+                        'grafite': [
+                          'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1200&auto=format&fit=crop'
+                        ],
+                        'cyberpunk': [
+                          'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1200&auto=format&fit=crop'
+                        ]
+                      };
+                      const selectedBanners = defaultBanners[newTheme] || defaultBanners['base-azul-minimal'];
+                      setListBannerUrl(selectedBanners[0]);
+                      setCustomBannerFile(null);
+                    }} 
+                  />
                 </div>
 
                 <div className="form-group">
                   <label>Imagem de Capa | 1200x400px</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginTop: '0.25rem' }}>
-                    {THEMES_DATA[listThemeColor || 'classic']?.banners.map((url, index) => (
-                      <div 
-                        key={index} 
-                        onClick={() => { setListBannerUrl(url); setCustomBannerFile(null); }}
-                        style={{
-                          height: '55px',
-                          borderRadius: '8px',
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                          cursor: 'pointer',
-                          backgroundImage: `url(${url})`,
-                          border: listBannerUrl === url && !customBannerFile ? '2px solid var(--primary)' : '2px solid transparent',
-                        }}
-                      />
-                    ))}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', marginTop: '0.25rem' }}>
+                    {(() => {
+                      const defaultBanners: Record<string, string[]> = {
+                        'base-azul-minimal': [
+                          'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=1200&auto=format&fit=crop'
+                        ],
+                        'algodao-rosa': [
+                          'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1488900128323-24ddcef409f7?q=80&w=1200&auto=format&fit=crop'
+                        ],
+                        'champagne-chic': [
+                          'https://images.unsplash.com/photo-1507504038482-7621fe583dc5?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=1200&auto=format&fit=crop'
+                        ],
+                        'eucalipto-organico': [
+                          'https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1200&auto=format&fit=crop'
+                        ],
+                        'oceano': [
+                          'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1519046904884-53103b34b206?q=80&w=1200&auto=format&fit=crop'
+                        ],
+                        'pessego': [
+                          'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?q=80&w=1200&auto=format&fit=crop'
+                        ],
+                        'terracota': [
+                          'https://images.unsplash.com/photo-1507504038482-7621fe583dc5?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=1200&auto=format&fit=crop'
+                        ],
+                        'grafite': [
+                          'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1200&auto=format&fit=crop'
+                        ],
+                        'cyberpunk': [
+                          'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1200&auto=format&fit=crop',
+                          'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1200&auto=format&fit=crop'
+                        ]
+                      };
+                      const activeBanners = defaultBanners[listThemeColor] || defaultBanners['base-azul-minimal'];
+                      return activeBanners.map((url, index) => (
+                        <div 
+                          key={index} 
+                          onClick={() => { setListBannerUrl(url); setCustomBannerFile(null); }}
+                          style={{
+                            height: '55px',
+                            borderRadius: '8px',
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            cursor: 'pointer',
+                            backgroundImage: `url(${url})`,
+                            border: listBannerUrl === url && !customBannerFile ? '2px solid var(--primary)' : '2px solid transparent',
+                          }}
+                        />
+                      ));
+                    })()}
                   </div>
 
                   {/* Card Dropzone para Enviar Capa Personalizada */}

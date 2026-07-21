@@ -360,7 +360,7 @@ export default function ListClient({ list, initialGifts }: ListClientProps) {
   };
 
   return (
-    <div className={`theme-${list.theme_color}`} style={styles.pageWrapper}>
+    <div data-theme={list.theme_color || 'base-azul-minimal'} style={{ ...styles.pageWrapper, background: 'var(--background)' }}>
 
       {/* Navbar Fixo */}
       <header style={styles.navbar}>

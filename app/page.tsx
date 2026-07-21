@@ -72,24 +72,24 @@ export default function Home() {
           <h2 style={styles.sectionTitle} className="serif-font">Personalização para qualquer ocasião</h2>
           <div style={styles.categoriesGrid}>
             <div className="glass-card" style={styles.categoryCard}>
-              <div style={{ ...styles.categoryIconCircle, background: 'rgba(251, 191, 36, 0.15)' }}>
-                <Heart size={24} color="#d97706" />
+              <div style={{ ...styles.categoryIconCircle, background: 'var(--warning-surface)' }}>
+                <Heart size={24} color="var(--warning)" />
               </div>
               <h3 style={styles.categoryName}>Casamentos</h3>
               <p style={styles.categoryDesc}>Design clássico e minimalista com detalhes em champagne para listas de casamento elegantes.</p>
             </div>
 
             <div className="glass-card" style={styles.categoryCard}>
-              <div style={{ ...styles.categoryIconCircle, background: 'rgba(147, 197, 253, 0.2)' }}>
-                <Baby size={24} color="#3b82f6" />
+              <div style={{ ...styles.categoryIconCircle, background: 'var(--info-surface)' }}>
+                <Baby size={24} color="var(--info)" />
               </div>
               <h3 style={styles.categoryName}>Chá de Bebê</h3>
               <p style={styles.categoryDesc}>Temas azul, rosa e neutro com cores pastéis fofas. Perfeito para chás de fralda e revelação.</p>
             </div>
 
             <div className="glass-card" style={styles.categoryCard}>
-              <div style={{ ...styles.categoryIconCircle, background: 'rgba(244, 63, 94, 0.15)' }}>
-                <PartyPopper size={24} color="#f43f5e" />
+              <div style={{ ...styles.categoryIconCircle, background: 'var(--danger-surface)' }}>
+                <PartyPopper size={24} color="var(--danger)" />
               </div>
               <h3 style={styles.categoryName}>Aniversários</h3>
               <p style={styles.categoryDesc}>Cores festivas e vibrantes para listas de aniversário infantil ou adulto que se destacam.</p>
@@ -190,7 +190,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 4px 8px rgba(var(--primary-rgb), 0.15)',
+    boxShadow: '0 4px 8px var(--primary-soft)',
   },
   logoName: {
     fontSize: '1.25rem',
@@ -230,9 +230,9 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '0.5rem',
     padding: '0.5rem 1rem',
     borderRadius: '30px',
-    background: 'rgba(255, 255, 255, 0.7)',
-    border: '1px solid rgba(255, 255, 255, 0.8)',
-    boxShadow: '0 4px 10px rgba(0,0,0,0.02)',
+    background: 'var(--surface-hover)',
+    border: '1px solid var(--border)',
+    boxShadow: 'var(--shadow-xs)',
     fontSize: '0.75rem',
     fontWeight: '600',
     color: 'var(--primary)',
@@ -247,7 +247,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   heroHighlight: {
     color: 'var(--primary)',
-    background: 'linear-gradient(120deg, rgba(var(--primary-rgb), 0.15) 0%, rgba(var(--primary-rgb), 0.05) 100%)',
+    background: 'var(--primary-soft)',
     padding: '0 0.5rem',
     borderRadius: '8px',
   },
@@ -328,13 +328,13 @@ const styles: Record<string, React.CSSProperties> = {
     height: '40px',
     borderRadius: '50%',
     background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)',
-    color: '#ffffff',
+    color: 'var(--text-inverse)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontWeight: '700',
     fontSize: '1.125rem',
-    boxShadow: '0 4px 8px rgba(var(--primary-rgb), 0.2)',
+    boxShadow: '0 4px 8px var(--primary-soft)',
   },
   stepTitle: {
     fontSize: '1.25rem',
@@ -349,7 +349,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     padding: '3rem',
-    background: 'rgba(255, 255, 255, 0.8)',
+    background: 'var(--surface-elevated)',
   },
   benefitsContent: {
     maxWidth: '800px',
@@ -378,8 +378,8 @@ const styles: Record<string, React.CSSProperties> = {
   footer: {
     width: '100%',
     padding: '2.5rem 1.5rem',
-    background: 'rgba(0, 0, 0, 0.02)',
-    borderTop: '1px solid rgba(0, 0, 0, 0.05)',
+    background: 'var(--surface-hover)',
+    borderTop: '1px solid var(--border)',
     textAlign: 'center',
     fontSize: '0.875rem',
     color: 'var(--text-muted)',

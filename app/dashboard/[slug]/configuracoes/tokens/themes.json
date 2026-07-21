@@ -1,0 +1,182 @@
+{
+  "base-azul-minimal": {
+    "label": "Azul Minimal (Padrão do Site)",
+    "mode": "light",
+    "accentHue": 243,
+    "scale": {
+      "1": "#FBFBFC",
+      "2": "#F5F4F8",
+      "3": "#EBEBF2",
+      "4": "#DEDDEC",
+      "5": "#CCCBE4",
+      "6": "#B5B3DB",
+      "7": "#9491CF",
+      "8": "#6964C4",
+      "9": "#524BDD",
+      "10": "#2E24DB",
+      "11": "#312C96",
+      "12": "#1D1B3C"
+    },
+    "backgroundTint": "#F0F0FF"
+  },
+  "algodao-rosa": {
+    "label": "☁️ Rosa Algodão",
+    "mode": "light",
+    "accentHue": 336,
+    "scale": {
+      "1": "#FCFBFB",
+      "2": "#F8F5F6",
+      "3": "#F2EBEE",
+      "4": "#EBDEE3",
+      "5": "#E3CCD5",
+      "6": "#D9B5C3",
+      "7": "#CC94AA",
+      "8": "#C0688B",
+      "9": "#D13D78",
+      "10": "#BD2864",
+      "11": "#913157",
+      "12": "#3A1D28"
+    },
+    "backgroundTint": "#FFF0F6"
+  },
+  "champagne-chic": {
+    "label": "🥂 Champagne Chic",
+    "mode": "light",
+    "accentHue": 38,
+    "scale": {
+      "1": "#FCFBFB",
+      "2": "#F8F7F4",
+      "3": "#F2EFEB",
+      "4": "#ECE6DD",
+      "5": "#E4DBCB",
+      "6": "#DBCCB3",
+      "7": "#CFB891",
+      "8": "#C4A164",
+      "9": "#9A6C1D",
+      "10": "#7A5514",
+      "11": "#966F2C",
+      "12": "#3C301B"
+    },
+    "backgroundTint": "#FFF9F0"
+  },
+  "eucalipto-organico": {
+    "label": "🌿 Eucalipto Orgânico",
+    "mode": "light",
+    "accentHue": 152,
+    "scale": {
+      "1": "#FBFBFB",
+      "2": "#F5F7F6",
+      "3": "#EDF0EF",
+      "4": "#E1E8E4",
+      "5": "#D1DED8",
+      "6": "#BDD1C8",
+      "7": "#A0C0B1",
+      "8": "#7CAC96",
+      "9": "#438968",
+      "10": "#346F54",
+      "11": "#477B63",
+      "12": "#23332C"
+    },
+    "backgroundTint": "#F0FFF8"
+  },
+  "oceano": {
+    "label": "🌊 Oceano",
+    "mode": "light",
+    "accentHue": 204,
+    "scale": {
+      "1": "#FBFBFC",
+      "2": "#F4F6F8",
+      "3": "#EBEFF2",
+      "4": "#DDE6EC",
+      "5": "#CBDAE4",
+      "6": "#B3CBDB",
+      "7": "#91B6CF",
+      "8": "#649EC4",
+      "9": "#227AB4",
+      "10": "#196395",
+      "11": "#2C6B96",
+      "12": "#1B2F3C"
+    },
+    "backgroundTint": "#F0F9FF"
+  },
+  "pessego": {
+    "label": "🍑 Pêssego",
+    "mode": "light",
+    "accentHue": 21,
+    "scale": {
+      "1": "#FCFBFB",
+      "2": "#F8F6F4",
+      "3": "#F3EDEA",
+      "4": "#ECE2DC",
+      "5": "#E5D3CA",
+      "6": "#DDC0B1",
+      "7": "#D2A68E",
+      "8": "#C9845F",
+      "9": "#C0551B",
+      "10": "#A04413",
+      "11": "#9B4F27",
+      "12": "#3D2619"
+    },
+    "backgroundTint": "#FFF5F0"
+  },
+  "terracota": {
+    "label": "🌅 Terracota",
+    "mode": "light",
+    "accentHue": 14,
+    "scale": {
+      "1": "#FCFBFB",
+      "2": "#F7F5F5",
+      "3": "#F2EDEB",
+      "4": "#EAE1DE",
+      "5": "#E1D2CD",
+      "6": "#D7BEB7",
+      "7": "#C9A397",
+      "8": "#BB7F6D",
+      "9": "#BE5637",
+      "10": "#A1472B",
+      "11": "#8C4A36",
+      "12": "#38241E"
+    },
+    "backgroundTint": "#FFF3F0"
+  },
+  "grafite": {
+    "label": "⚫ Grafite",
+    "mode": "light",
+    "accentHue": 222,
+    "scale": {
+      "1": "#FBFBFB",
+      "2": "#F6F6F6",
+      "3": "#EEEEEF",
+      "4": "#E3E4E5",
+      "5": "#D6D7D9",
+      "6": "#C4C6CA",
+      "7": "#ABAEB5",
+      "8": "#8D919B",
+      "9": "#494E5A",
+      "10": "#373B44",
+      "11": "#595E69",
+      "12": "#292A2E"
+    },
+    "backgroundTint": "#F0F4FF"
+  },
+  "cyberpunk": {
+    "label": "🌌 Cyberpunk",
+    "mode": "dark",
+    "accentHue": 232,
+    "scale": {
+      "1": "#11131D",
+      "2": "#151828",
+      "3": "#191D33",
+      "4": "#1E2343",
+      "5": "#242B56",
+      "6": "#2A336F",
+      "7": "#323E90",
+      "8": "#3748B9",
+      "9": "#4459E4",
+      "10": "#697AED",
+      "11": "#B0B6DE",
+      "12": "#E9EAF1"
+    },
+    "backgroundTint": null
+  }
+}

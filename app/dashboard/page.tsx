@@ -217,8 +217,8 @@ export default function Dashboard() {
     setListTitle('');
     setListDescription('');
     setListEventType('other');
-    setListThemeColor('classic');
-    setListBannerUrl(THEMES_DATA.classic.banners[0]);
+    setListThemeColor('base-azul-minimal');
+    setListBannerUrl('https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&q=80&w=1200&h=400');
     setListEventDate('');
     
     // Gera um sufixo aleatório único de 6 caracteres alternando número e letra

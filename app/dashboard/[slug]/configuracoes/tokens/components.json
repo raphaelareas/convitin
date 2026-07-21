@@ -1,0 +1,141 @@
+{
+  "button": {
+    "primary": {
+      "background": "{primary}",
+      "backgroundHover": "{primaryHover}",
+      "backgroundPressed": "{primaryActive}",
+      "backgroundDisabled": "{textDisabled}",
+      "text": "{onPrimary}",
+      "border": "transparent",
+      "radius": "{radius.sm}",
+      "shadow": "{shadow.xs}"
+    },
+    "secondary": {
+      "background": "{secondary}",
+      "backgroundHover": "{secondaryHover}",
+      "backgroundPressed": "{border}",
+      "backgroundDisabled": "{surfaceHover}",
+      "text": "{onSecondary}",
+      "border": "{border}",
+      "radius": "{radius.sm}"
+    },
+    "outline": {
+      "background": "transparent",
+      "backgroundHover": "{primarySurface}",
+      "text": "{primary}",
+      "border": "{primary}",
+      "radius": "{radius.sm}"
+    },
+    "danger": {
+      "background": "{danger}",
+      "backgroundHover": "{danger}",
+      "text": "{onPrimary}",
+      "border": "transparent",
+      "radius": "{radius.sm}"
+    }
+  },
+  "card": {
+    "background": "{surface}",
+    "backgroundHover": "{surfaceHover}",
+    "border": "{border}",
+    "radius": "{radius.md}",
+    "shadow": "{shadow.sm}",
+    "shadowHover": "{shadow.md}"
+  },
+  "input": {
+    "background": "{surface}",
+    "border": "{border}",
+    "borderHover": "{borderHover}",
+    "borderFocus": "{borderFocus}",
+    "borderError": "{danger}",
+    "text": "{textBody}",
+    "placeholder": "{textMuted}",
+    "radius": "{radius.sm}"
+  },
+  "badge": {
+    "primary": {
+      "background": "{primarySurface}",
+      "text": "{primary}"
+    },
+    "neutral": {
+      "background": "{secondarySurface}",
+      "text": "{textMuted}"
+    },
+    "success": {
+      "background": "{successSurface}",
+      "text": "{success}"
+    },
+    "warning": {
+      "background": "{warningSurface}",
+      "text": "{warning}"
+    },
+    "danger": {
+      "background": "{dangerSurface}",
+      "text": "{danger}"
+    },
+    "info": {
+      "background": "{infoSurface}",
+      "text": "{info}"
+    },
+    "radius": "{radius.full}"
+  },
+  "chip": {
+    "background": "{surfaceHover}",
+    "backgroundSelected": "{primarySoft}",
+    "text": "{textBody}",
+    "textSelected": "{primary}",
+    "radius": "{radius.full}"
+  },
+  "tabs": {
+    "text": "{textMuted}",
+    "textActive": "{primary}",
+    "indicator": "{primary}",
+    "border": "{border}"
+  },
+  "modal": {
+    "background": "{surface}",
+    "overlay": "rgba(0,0,0,{opacity.overlay})",
+    "radius": "{radius.lg}",
+    "shadow": "{shadow.xl}",
+    "border": "{border}"
+  },
+  "toast": {
+    "background": "{surfaceElevated}",
+    "border": "{border}",
+    "shadow": "{shadow.lg}",
+    "radius": "{radius.md}",
+    "success": {
+      "border": "{success}"
+    },
+    "danger": {
+      "border": "{danger}"
+    }
+  },
+  "skeleton": {
+    "background": "{surfaceHover}",
+    "shimmer": "{surfaceActive}"
+  },
+  "header": {
+    "background": "{surface}",
+    "border": "{border}",
+    "text": "{textTitle}"
+  },
+  "footer": {
+    "background": "{background}",
+    "border": "{border}",
+    "text": "{textMuted}"
+  },
+  "filterPill": {
+    "background": "{surface}",
+    "backgroundActive": "{primary}",
+    "text": "{textBody}",
+    "textActive": "{onPrimary}",
+    "border": "{border}",
+    "radius": "{radius.full}"
+  },
+  "progressBar": {
+    "track": "{surfaceHover}",
+    "fill": "{primary}",
+    "radius": "{radius.full}"
+  }
+}

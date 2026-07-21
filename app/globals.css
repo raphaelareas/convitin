@@ -10,38 +10,38 @@
   --font-heading: 'Inter', sans-serif;
   --font-serif: 'Playfair Display', serif;
   
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-rgb: 79, 70, 229;
+  --primary: var(--accent-9);
+  --primary-hover: var(--accent-10);
+  --primary-rgb: 82, 75, 221;
 
-  /* Button colors — can differ from --primary for accessibility on pastel themes */
-  --button-bg: #4f46e5;
-  --button-hover-bg: #4338ca;
-  --button-text: #ffffff;
+  /* Button colors */
+  --button-bg: var(--primary);
+  --button-hover-bg: var(--primary-hover);
+  --button-text: var(--on-primary);
   
-  --background-start: #f8fafc;
-  --background-end: #e2e8f0;
+  --background-start: var(--background);
+  --background-end: var(--background);
   
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --text-light: #ffffff;
+  --text-main: var(--text-heading);
+  --text-muted: var(--text-body);
+  --text-light: var(--text-inverse);
   
-  --card-bg: rgba(255, 255, 255, 0.7);
-  --card-border: rgba(255, 255, 255, 0.6);
-  --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+  --card-bg: var(--surface);
+  --card-border: var(--border);
+  --card-shadow: var(--shadow-sm);
   
-  --glass-bg: rgba(255, 255, 255, 0.45);
-  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-bg: var(--surface);
+  --glass-border: var(--border);
   
-  --accent: #f43f5e; /* Rose */
-  --accent-rgb: 244, 63, 94;
+  --accent: var(--feedback-danger-solid);
+  --accent-rgb: 219, 36, 45;
   
-  --success: #10b981;
-  --warning: #f59e0b;
+  --success: var(--feedback-success-solid);
+  --warning: var(--feedback-warning-solid);
   
-  --border-radius-sm: 8px;
-  --border-radius-md: 16px;
-  --border-radius-lg: 24px;
+  --border-radius-sm: var(--radius-sm);
+  --border-radius-md: var(--radius-md);
+  --border-radius-lg: var(--radius-lg);
   
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -50,113 +50,7 @@
    THEME PRESETS (CSS Variables mapping)
    ========================================================================= */
 
-/* 1. Casamento (Wedding) - Gold, Off-white, Luxury */
-.theme-wedding {
-  --primary: #c5a880;
-  --primary-hover: #b09168;
-  --primary-rgb: 197, 168, 128;
-  /* Button: deep warm brown — contrast 7.3:1 with white */
-  --button-bg: #7c5c2e;
-  --button-hover-bg: #6b4e26;
-  --button-text: #ffffff;
-  --background-start: #faf9f6;
-  --background-end: #f0ede5;
-  --text-main: #2b261f;
-  --text-muted: #7c7267;
-  --card-bg: rgba(255, 255, 255, 0.85);
-  --card-border: rgba(230, 224, 213, 0.8);
-  --accent: #d97706;
-}
-
-/* 2. Chá de Bebê Menino (Baby Boy) - Pastel Blue, Soft Gray */
-.theme-baby_boy {
-  --primary: #93c5fd;
-  --primary-hover: #60a5fa;
-  --primary-rgb: 147, 197, 253;
-  /* Button: deep blue — contrast 8.6:1 with white */
-  --button-bg: #1d4ed8;
-  --button-hover-bg: #1e40af;
-  --button-text: #ffffff;
-  --background-start: #f0f7ff;
-  --background-end: #e0f2fe;
-  --text-main: #1e3a8a;
-  --text-muted: #64748b;
-  --card-bg: rgba(255, 255, 255, 0.75);
-  --card-border: rgba(219, 234, 254, 0.7);
-  --accent: #f43f5e;
-}
-
-/* 3. Chá de Bebê Menina (Baby Girl) - Pastel Pink, Lilac */
-.theme-baby_girl {
-  --primary: #fbcfe8;
-  --primary-hover: #f9a8d4;
-  --primary-rgb: 251, 207, 232;
-  /* Button: deep rose — contrast 6.2:1 with white */
-  --button-bg: #be185d;
-  --button-hover-bg: #9d174d;
-  --button-text: #ffffff;
-  --background-start: #fff1f2;
-  --background-end: #ffe4e6;
-  --text-main: #881337;
-  --text-muted: #9f1239;
-  --card-bg: rgba(255, 255, 255, 0.8);
-  --card-border: rgba(253, 224, 224, 0.7);
-  --accent: #3b82f6;
-}
-
-/* 4. Chá de Bebê Neutro (Baby Neutral) - Mint Green, Peach, Cream */
-.theme-baby_neutral {
-  --primary: #a7f3d0;
-  --primary-hover: #6ee7b7;
-  --primary-rgb: 167, 243, 208;
-  /* Button: deep emerald — contrast 8.1:1 with white */
-  --button-bg: #065f46;
-  --button-hover-bg: #064e3b;
-  --button-text: #ffffff;
-  --background-start: #f0fdf4;
-  --background-end: #ecfdf5;
-  --text-main: #064e3b;
-  --text-muted: #047857;
-  --card-bg: rgba(255, 255, 255, 0.75);
-  --card-border: rgba(209, 250, 229, 0.7);
-  --accent: #f59e0b;
-}
-
-/* 5. Aniversário Infantil (Birthday) - Vibrant Orange, Yellow, Royal Blue */
-.theme-birthday {
-  --primary: #f97316;
-  --primary-hover: #ea580c;
-  --primary-rgb: 249, 115, 22;
-  /* Button: dark burnt orange — contrast 4.6:1 with white */
-  --button-bg: #c2410c;
-  --button-hover-bg: #9a3412;
-  --button-text: #ffffff;
-  --background-start: #fffbeb;
-  --background-end: #fef3c7;
-  --text-main: #7c2d12;
-  --text-muted: #b45309;
-  --card-bg: rgba(255, 255, 255, 0.85);
-  --card-border: rgba(253, 230, 138, 0.8);
-  --accent: #0284c7;
-}
-
-/* 6. Chá de Panela / Lingerie (Bridal Shower) - Rose Gold, Wine */
-.theme-bridal_shower {
-  --primary: #fda4af;
-  --primary-hover: #f43f5e;
-  --primary-rgb: 253, 164, 175;
-  /* Button: deep crimson — contrast 7.8:1 with white */
-  --button-bg: #9f1239;
-  --button-hover-bg: #881337;
-  --button-text: #ffffff;
-  --background-start: #fff1f2;
-  --background-end: #fce7f3;
-  --text-main: #4c0519;
-  --text-muted: #9f1239;
-  --card-bg: rgba(255, 255, 255, 0.8);
-  --card-border: rgba(251, 207, 232, 0.7);
-  --accent: #fb7185;
-}
+/* Removido themes duplicados para delegar totalmente aos data-theme do css/tokens.css */
 
 /* =========================================================================
    GLOBAL RESET & BASE STYLES
@@ -171,8 +65,7 @@
 html, body {
   font-family: var(--font-primary);
   color: var(--text-main);
-  background: linear-gradient(135deg, var(--background-start) 0%, var(--background-end) 100%);
-  background-attachment: fixed;
+  background: var(--background);
   min-height: 100vh;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -211,8 +104,6 @@ input, textarea, select {
 /* Glass Container Card */
 .glass-card {
   background: var(--card-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--card-border);
   box-shadow: var(--card-shadow);
   border-radius: var(--border-radius-md);
@@ -221,7 +112,7 @@ input, textarea, select {
 }
 
 .glass-card:hover {
-  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 /* Input Styles */
@@ -232,9 +123,6 @@ input, textarea, select {
   margin-bottom: 8px;
 }
 
-
-
-
 .form-group label {
   font-size: 0.875rem;
   font-weight: 600;
@@ -244,20 +132,20 @@ input, textarea, select {
 .input-field {
   padding: 0.75rem 1rem;
   border-radius: var(--border-radius-sm);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--border);
+  background: var(--surface);
   color: var(--text-main);
   outline: none;
   transition: var(--transition-smooth);
 }
 
 .input-field:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--primary-soft);
 }
 
 .input-field::placeholder {
-  color: #a1a1aa;
+  color: var(--text-disabled);
 }
 
 /* Button Styles */
@@ -276,48 +164,50 @@ input, textarea, select {
 }
 
 .btn-primary {
-  background: var(--button-bg, var(--primary));
-  color: var(--button-text, var(--text-light));
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: var(--shadow-xs);
 }
 
 .btn-primary:hover {
-  background: var(--button-hover-bg, var(--primary-hover));
+  background: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.25);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:active {
   transform: translateY(0);
+  background: var(--primary-active);
 }
 
 .btn-primary:disabled,
 .btn-primary[disabled] {
-  background: #c8cdd6 !important;
-  color: #6b7280 !important;
+  background: var(--text-disabled) !important;
+  color: var(--on-primary) !important;
   cursor: not-allowed !important;
   transform: none !important;
   box-shadow: none !important;
-  opacity: 1 !important;
+  opacity: var(--opacity-disabled) !important;
 }
 
 .btn-secondary {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--text-main);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: var(--secondary);
+  color: var(--on-secondary);
+  border: 1px solid var(--border);
 }
 
 .btn-secondary:hover {
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--secondary-hover);
   transform: translateY(-2px);
 }
 
 .btn-danger {
-  background: var(--accent);
-  color: var(--text-light);
+  background: var(--danger);
+  color: var(--on-primary);
 }
 
 .btn-danger:hover {
-  background: #e11d48;
+  background: var(--feedback-danger-solid-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.2);
 }

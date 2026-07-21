@@ -1,0 +1,98 @@
+{
+  "neutral": {
+    "light": {
+      "1": "#FBFBFB",
+      "2": "#F6F6F6",
+      "3": "#EEEEEF",
+      "4": "#E3E4E5",
+      "5": "#D6D7D9",
+      "6": "#C5C5C9",
+      "7": "#ACAEB4",
+      "8": "#8E909A",
+      "9": "#6C6F7F",
+      "10": "#595B69",
+      "11": "#5B5D67",
+      "12": "#292A2D"
+    },
+    "dark": {
+      "1": "#161618",
+      "2": "#1D1E20",
+      "3": "#252528",
+      "4": "#2E2F33",
+      "5": "#3A3B41",
+      "6": "#484951",
+      "7": "#5B5D67",
+      "8": "#6F7280",
+      "9": "#818598",
+      "10": "#9A9DAD",
+      "11": "#C4C5CA",
+      "12": "#EDEDEE"
+    }
+  },
+  "feedback": {
+    "success": {
+      "surface": "#F0F4F2",
+      "border": "#B6D8C7",
+      "solid": "#2C9661",
+      "solidHover": "#22774D",
+      "text": "#307352"
+    },
+    "warning": {
+      "surface": "#F6F3EF",
+      "border": "#E1D0AD",
+      "solid": "#EDA71D",
+      "solidHover": "#D09011",
+      "text": "#86631E"
+    },
+    "danger": {
+      "surface": "#F5EFF0",
+      "border": "#DDB1B3",
+      "solid": "#DB242D",
+      "solidHover": "#B81E26",
+      "text": "#7E262A"
+    },
+    "info": {
+      "surface": "#F0F3F5",
+      "border": "#B1CADC",
+      "solid": "#268ED9",
+      "solidHover": "#2078B6",
+      "text": "#27597C"
+    }
+  },
+  "radius": {
+    "none": "0px",
+    "xs": "4px",
+    "sm": "8px",
+    "md": "12px",
+    "lg": "16px",
+    "xl": "20px",
+    "2xl": "24px",
+    "full": "9999px"
+  },
+  "shadow": {
+    "xs": "0 1px 2px rgba(16, 24, 40, 0.05)",
+    "sm": "0 1px 3px rgba(16, 24, 40, 0.10), 0 1px 2px rgba(16, 24, 40, 0.06)",
+    "md": "0 4px 8px -2px rgba(16, 24, 40, 0.10), 0 2px 4px -2px rgba(16, 24, 40, 0.06)",
+    "lg": "0 12px 16px -4px rgba(16, 24, 40, 0.08), 0 4px 6px -2px rgba(16, 24, 40, 0.03)",
+    "xl": "0 20px 24px -4px rgba(16, 24, 40, 0.08), 0 8px 8px -4px rgba(16, 24, 40, 0.03)"
+  },
+  "spacing": {
+    "2": "2px",
+    "4": "4px",
+    "8": "8px",
+    "12": "12px",
+    "16": "16px",
+    "20": "20px",
+    "24": "24px",
+    "32": "32px",
+    "40": "40px",
+    "48": "48px",
+    "64": "64px",
+    "80": "80px"
+  },
+  "opacity": {
+    "disabled": 0.4,
+    "overlay": 0.6,
+    "backdrop": 0.8
+  }
+}
